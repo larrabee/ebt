@@ -1,0 +1,5 @@
+- name: install_msmtp_packpages
+  apt: pkg={{item}} state=latest update_cache=yes
+  with_items:
+    - "test"
+    - "test2"
