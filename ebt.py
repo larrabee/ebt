@@ -10,18 +10,22 @@ import traceback
 #ConfigObj
 from configobj import ConfigObj
 from validate import Validator
+#Other
+import inspect
 #My modules
+conf_dir = '/etc/ebt'
+sys.path.append(conf_dir)
 import plans
 
 #Base vars
-config_filename = '/home/larrabee/PycharmProjects/ebbt/ebbt.conf'
-config_spec_filename = '/home/larrabee/PycharmProjects/ebbt/ebbt.spec'
+version = '0.6'
+config_filename = conf_dir + '/ebt.conf'
+config_spec_filename = conf_dir + '/ebt.spec'
 formater = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
 
 #Comman line parser
 cli_parser = argparse.ArgumentParser()
 cli_parser.add_argument('-j', '--jobs', nargs='+', help='List of jobs to run')
-cli_parser.add_argument('-c', '--cleanup', nargs='+', help='List of jobs to cleanup')
 cli_parser.add_argument('-v', '--version', default=False, action='store_true', help='Display program version and exit')
 cli = cli_parser.parse_args()
 #Base logging
@@ -105,39 +109,35 @@ except KeyError:
 else:
     log.debug('SMTP handler successfully added')
 
-try:
-    plan = 'plans.images_full()'
-    exec(plan)
-except AssertionError as e:
-    log.error('Assertion Error')
-    log.debug(e)
-except Exception as e:
-    log.error(e)
-    log.debug(traceback.format_exc())
 
-log.info('=' * 30 + 'Program halted' + '=' * 30)
-"""
+def getfunctions(function):
+    functions_raw = inspect.getmembers(function, inspect.isfunction)
+    functions = list()
+    for item in functions_raw:
+        functions.append(item[0])
+    return functions
+
+if cli.version:
+    print('Version: ' + version)
+
+if cli.jobs is None:
+    print('Nothing to do')
+    exit(0)
+
 for job in cli.jobs:
-    log.info('Job "{0}" started'.format(job))
+    if job not in getfunctions(plans):
+        log.error('Job "{0}" not found in plans.py'.format(job))
+        break
+    log.info('-' * 30 + 'Job "{0}" started'.format(job) + '-' * 30)
     try:
-        job_config = cfg_parser['jobs'][job]
-    except KeyError:
-        log.error('"{0}" section not found in configuration file'.format(job))
-        log.error('Job "{0}" failed'.format(job))
-        continue
-    else:
-        log.debug('Job "{0}" configuration successfully read'.format(job))
-    try:
-        module = __import__(job_config['type'])
-    except ImportError:
-        log.error('Cannot import module "{0}"'.format(job_config['type']))
-        log.error('Job "{0}" failed'.format(job))
-        continue
-    else:
-        log.debug('Successful import module "{0}"'.format(job_config['type']))
-    try:
-        module.run(cfg=cfg_parser, job_config=job_config, log=log)
-    except:
-        log.error('Job execution failed with error: {0}'.format(sys.exc_info()))
-"""
+        plan = 'plans.' + job + '()'
+        exec(plan)
+    except AssertionError as e:
+        log.error('Assertion Error')
+        log.debug(e)
+    except Exception as e:
+        log.error(e)
+        log.debug(traceback.format_exc())
+    log.info('-' * 30 + 'Job "{0}" finished'.format(job) + '-' * 30)
+log.info('=' * 30 + 'Program halted' + '=' * 30)
 

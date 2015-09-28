@@ -61,5 +61,5 @@ def filter_list(path, format='%date', dayexp=None, store_last=None):
 
 
 def last_backup(path, format='%date'):
-    backups = filter_list(path=path, format=format)
-    return backups[0]
+    backup = filter_list(path=path, format=format)
+    return backup[0]
