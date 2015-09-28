@@ -1,19 +1,17 @@
 #!/usr/bin/python3
 __author__ = 'larrabee'
-import subprocess
+import modules.system
+import sys
+import logging
 
+log = logging.getLogger('__main__')
 
-
-def __popen(command):
-    process = subprocess.Popen(command.split(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-    output = process.communicate()[0]
-    if process.returncode != 0:
-        raise RuntimeError('Error code:', str(process.returncode), 'Output: ', output, 'Command: ', command)
-    return output
 
 def sub_list(path):
+    assert isinstance(path, str), '{1}.{2}: variable "{0}" has wrong type.'.format('path', __name__,
+                                                                                   sys._getframe().f_code.co_name)
     command = 'btrfs subvolume list {0}'.format(str(path))
-    raw_output = __popen(command)
+    raw_output = modules.system.popen(command)[0]
     form_output = raw_output.decode()
     output = list()
     for string in form_output.split(sep='\n'):
@@ -23,27 +21,47 @@ def sub_list(path):
             output.append(output_element)
     return output
 
-def sub_del(path):
-    command = 'btrfs subvolume delete {0}'.format(str(path))
-    __popen(command)
 
-def sub_snap(path, snap_path, readonly=True):
-    command = 'btrfs subvolume snapshot {0} {1}'.format(str(path), str(snap_path))
+def sub_del(path):
+    assert isinstance(path, str) or isinstance(path, list), '{1}.{2}: variable "{0}" has wrong type.'.format('path', __name__,
+                                                                                   sys._getframe().f_code.co_name)
+    if type(path) is str:
+        command = 'btrfs subvolume delete {0}'.format(path)
+        modules.system.popen(command)
+        log.info('Delete btrfs subvolume {0}'.format(path))
+    else:
+        for subvolume in path:
+            command = 'btrfs subvolume delete {0}'.format(subvolume)
+            modules.system.popen(command)
+            log.info('Delete btrfs subvolume {0}'.format(subvolume))
+
+
+def sub_snap(source, dest, readonly=True):
+    assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.'.format('source', __name__,
+                                                                                     sys._getframe().f_code.co_name)
+    assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'.format('dest', __name__,
+                                                                                   sys._getframe().f_code.co_name)
+    assert isinstance(readonly, bool), '{1}.{2}: variable "{0}" has wrong type.'.format('readonly', __name__,
+                                                                                        sys._getframe().f_code.co_name)
+    command = 'btrfs subvolume snapshot {0} {1}'.format(source, dest)
     if readonly:
         command += ' -r'
-    __popen(command)
+    modules.system.popen(command)
+    log.info('Create snapshot of {0} to {1} , readonly: {2}'.format(source, dest, str(readonly)))
 
-def send(path, dest_path, parrent_path=None):
-    command = 'btrfs send {0} -f {1}'.format(str(path), str(dest_path))
+
+def send(source, dest, parrent_path=None):
+    assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.'.format('source', __name__,
+                                                                                     sys._getframe().f_code.co_name)
+    assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'.format('dest', __name__,
+                                                                                   sys._getframe().f_code.co_name)
+    assert isinstance(parrent_path, str) or (parrent_path is None), '{1}.{2}: variable "{0}" has wrong type.'.format('parrent_path',
+                                                                                                   __name__,
+                                                                                                   sys._getframe().f_code.co_name)
+    command = 'btrfs send {0} -f {1}'.format(source, dest)
     if parrent_path is not None:
-        command += ' -p {0}'.format(str(parrent_path))
-    __popen(command)
-
-def sub_getdef(path):
-    command = 'btrfs subvolume get-default {0}'.format(str(path))
-    raw_output = __popen(command)
-    form_output = raw_output.decode()
-    string = int(form_output.split(sep='\n')[0].split(sep=' ')[1])
-    return string
+        command += ' -p {0}'.format(parrent_path)
+    modules.system.popen(command)
+    log.info('Send subvolume {0} to {1} , parrent: {2}'.format(source, dest, str(parrent_path)))
 
 

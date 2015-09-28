@@ -1,25 +1,22 @@
+#!/usr/bin/python3
 __author__ = 'larrabee'
 #Cli
 import argparse
 #Logging
 import logging
 import logging.handlers
+import sys
+import traceback
 #ConfigObj
 from configobj import ConfigObj
 from validate import Validator
-#System modules
-import sys
-import yaml
+#My modules
+import plans
 
 #Base vars
 config_filename = '/home/larrabee/PycharmProjects/ebbt/ebbt.conf'
 config_spec_filename = '/home/larrabee/PycharmProjects/ebbt/ebbt.spec'
-module_dir = './modules'
 formater = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
-
-#Import special modules
-sys.path.append('.')
-import modules.btrfs
 
 #Comman line parser
 cli_parser = argparse.ArgumentParser()
@@ -59,6 +56,7 @@ elif config['loglevel'] == 'error':
 elif config['loglevel'] == 'crit':
     log.setLevel(logging.CRITICAL)
 
+log.info('=' * 30 + 'Program started' + '=' * 30)
 
 try:
     if 'syslog' in config['logmethod']:
@@ -83,34 +81,41 @@ except PermissionError:
     log.error('Permission denied: {0}. File handler not added to logger.'.format(config['logfile']))
 else:
     log.debug('File handler successfully added')
+
 try:
     mail_config = cfg_parser['MailConfig']
     if 'smtp' in config['logmethod']:
         if mail_config['tls']:
-            smtp_handler = logging.handlers.SMTPHandler(fromaddr=mail_config['from'],
-                                                        mailhost=(mail_config['server'], mail_config['port']),
-                                                        toaddrs=mail_config['recipients'],
-                                                        subject=mail_config['subject'],
-                                                        credentials=(mail_config['login'], mail_config['password']),
-                                                        secure=tuple())
+            smtp_handler = logging.handlers.SMTPHandler(fromaddr=mail_config['from'], mailhost=(mail_config['server'],
+                                                        mail_config['port']), toaddrs=mail_config['recipients'],
+                                                        subject=mail_config['subject'], secure=tuple(),
+                                                        credentials=(mail_config['login'], mail_config['password']))
         else:
-            smtp_handler = logging.handlers.SMTPHandler(fromaddr=mail_config['from'],
-                                                        mailhost=(mail_config['server'], mail_config['port']),
-                                                        toaddrs=mail_config['recipients'],
+            smtp_handler = logging.handlers.SMTPHandler(fromaddr=mail_config['from'], mailhost=(mail_config['server'],
+                                                        mail_config['port']), toaddrs=mail_config['recipients'],
                                                         subject=mail_config['subject'],
                                                         credentials=(mail_config['login'], mail_config['password']))
         smtp_handler.setFormatter(formater)
         memory_handler = logging.handlers.MemoryHandler(capacity=10240*1000, target=smtp_handler)
+        #Закомментировано для ускорения работы скрипта во время разработки.
+        #Для отправки почтовых уведомлнений необходимо расскомментировать.
         #log.addHandler(memory_handler)
 except KeyError:
     log.error('"Mail" section not found in configuration file')
 else:
     log.debug('SMTP handler successfully added')
 
+try:
+    plan = 'plans.images_full()'
+    exec(plan)
+except AssertionError as e:
+    log.error('Assertion Error')
+    log.debug(e)
+except Exception as e:
+    log.error(e)
+    log.debug(traceback.format_exc())
 
-stream = open('job.yml', 'r')
-job_config = yaml.load(stream)
-print(job_config)
+log.info('=' * 30 + 'Program halted' + '=' * 30)
 """
 for job in cli.jobs:
     log.info('Job "{0}" started'.format(job))
