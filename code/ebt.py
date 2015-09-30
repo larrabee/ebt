@@ -12,15 +12,16 @@ from configobj import ConfigObj
 from validate import Validator
 #Other
 import inspect
+import os
 #My modules
 conf_dir = '/etc/ebt'
 sys.path.append(conf_dir)
 import plans
 
 #Base vars
-version = '0.61'
+version = '0.62'
 config_filename = conf_dir + '/ebt.conf'
-config_spec_filename = 'ebt.spec'
+config_spec_filename = os.path.dirname(os.path.realpath(__file__)) + '/ebt.spec'
 formater = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
 
 #Comman line parser
