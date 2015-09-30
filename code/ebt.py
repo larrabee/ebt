@@ -18,7 +18,7 @@ sys.path.append(conf_dir)
 import plans
 
 #Base vars
-version = '0.6'
+version = '0.61'
 config_filename = conf_dir + '/ebt.conf'
 config_spec_filename = 'ebt.spec'
 formater = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
