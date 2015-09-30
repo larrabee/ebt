@@ -20,7 +20,7 @@ import plans
 #Base vars
 version = '0.6'
 config_filename = conf_dir + '/ebt.conf'
-config_spec_filename = conf_dir + '/ebt.spec'
+config_spec_filename = 'ebt.spec'
 formater = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
 
 #Comman line parser
