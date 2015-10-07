@@ -104,7 +104,7 @@ try:
         memory_handler = logging.handlers.MemoryHandler(capacity=10240*1000, target=smtp_handler)
         #Закомментировано для ускорения работы скрипта во время разработки.
         #Для отправки почтовых уведомлнений необходимо расскомментировать.
-        #log.addHandler(memory_handler)
+        log.addHandler(memory_handler)
 except KeyError:
     log.error('"Mail" section not found in configuration file')
 else:
