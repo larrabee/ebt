@@ -14,12 +14,13 @@ from validate import Validator
 import inspect
 import os
 #My modules
+import modules.logging
 conf_dir = '/etc/ebt'
 sys.path.append(conf_dir)
 import plans
 
 #Base vars
-version = '0.63'
+version = '0.64'
 config_filename = conf_dir + '/ebt.conf'
 config_spec_filename = os.path.dirname(os.path.realpath(__file__)) + '/ebt.spec'
 formater = logging.Formatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%d-%m-%Y %H:%M:%S")
@@ -61,7 +62,7 @@ elif config['loglevel'] == 'error':
 elif config['loglevel'] == 'crit':
     log.setLevel(logging.CRITICAL)
 
-log.info('=' * 30 + 'Program started' + '=' * 30)
+
 
 try:
     if 'syslog' in config['logmethod']:
@@ -91,20 +92,16 @@ try:
     mail_config = cfg_parser['MailConfig']
     if 'smtp' in config['logmethod']:
         if mail_config['tls']:
-            smtp_handler = logging.handlers.SMTPHandler(fromaddr=mail_config['from'], mailhost=(mail_config['server'],
-                                                        mail_config['port']), toaddrs=mail_config['recipients'],
-                                                        subject=mail_config['subject'], secure=tuple(),
-                                                        credentials=(mail_config['login'], mail_config['password']))
+            secure = tuple()
         else:
-            smtp_handler = logging.handlers.SMTPHandler(fromaddr=mail_config['from'], mailhost=(mail_config['server'],
-                                                        mail_config['port']), toaddrs=mail_config['recipients'],
-                                                        subject=mail_config['subject'],
-                                                        credentials=(mail_config['login'], mail_config['password']))
+            secure = None
+
+        smtp_handler = modules.logging.BufferingSMTPHandler(fromaddr=mail_config['from'], mailhost=(mail_config['server'],
+                                                    mail_config['port']), toaddrs=mail_config['recipients'],
+                                                    subject=mail_config['subject'], secure=secure,
+                                                    credentials=(mail_config['login'], mail_config['password']))
         smtp_handler.setFormatter(formater)
-        memory_handler = logging.handlers.MemoryHandler(capacity=10240*1000, target=smtp_handler)
-        #Закомментировано для ускорения работы скрипта во время разработки.
-        #Для отправки почтовых уведомлнений необходимо расскомментировать.
-        log.addHandler(memory_handler)
+        log.addHandler(smtp_handler)
 except KeyError:
     log.error('"Mail" section not found in configuration file')
 else:
@@ -120,11 +117,13 @@ def getfunctions(function):
 
 if cli.version:
     print('Version: ' + version)
+    exit(0)
 
 if cli.jobs is None:
     print('Nothing to do')
     exit(0)
 
+log.info('=' * 30 + 'Program started' + '=' * 30)
 for job in cli.jobs:
     if job not in getfunctions(plans):
         log.error('Job "{0}" not found in plans.py'.format(job))
