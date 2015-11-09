@@ -4,6 +4,7 @@ import modules.system
 import sys
 import logging
 
+
 log = logging.getLogger('__main__')
 
 
@@ -65,3 +66,11 @@ def send(source, dest, parrent_path=None):
     log.info('Send subvolume {0} to {1} , parrent: {2}'.format(source, dest, str(parrent_path)))
 
 
+def file_snap(source, dest):
+    assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.'.format('source', __name__,
+                                                                                     sys._getframe().f_code.co_name)
+    assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'.format('dest', __name__,
+                                                                                   sys._getframe().f_code.co_name)
+    command = 'cp --reflink {0} {1}'.format(source, dest)
+    modules.system.popen(command)
+    log.info('Create snapshot of file {0} to {1} , readonly: {2}'.format(source, dest))

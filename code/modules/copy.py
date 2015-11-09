@@ -24,7 +24,7 @@ class Rsync():
         exclude = ''
         if self.exclude is not None:
             for item in self.exclude:
-                exclude += ' --exclude=\'{0}\''.format(item)
+                exclude += ' --exclude={0}'.format(item)
         return exclude
 
     def full_copy(self, source, dest, rsync_options='aAX'):

@@ -62,4 +62,4 @@ def images_diff():
         log.debug(e)
     #Create snapshot
     modules.btrfs.sub_snap(source=source, dest=snap, readonly=True)
-    modules.btrfs.send(source=snap, dest=dest, parrent_path=full)
+    modules.btrfs.send(source=snap, dest=dest, parrent_path=snap_dir + '/' + full_name)
