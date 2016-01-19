@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../ansible-backup/.idea/ansible-backup.iml" filepath="$PROJECT_DIR$/../ansible-backup/.idea/ansible-backup.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/ebt.iml" filepath="$PROJECT_DIR$/.idea/ebt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../zabbix-jenkins/.idea/zabbix-jenkins.iml" filepath="$PROJECT_DIR$/../zabbix-jenkins/.idea/zabbix-jenkins.iml" />
     </modules>
   </component>
 </project>
