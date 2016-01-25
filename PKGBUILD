@@ -2,7 +2,7 @@ _name="ebt"
 _module="ebt"
 
 pkgname=("python-${_module}")
-pkgver="0.65"
+pkgver="0.66"
 pkgrel="1"
 pkgdesc="Enchanced backup tool"
 arch=("any")
