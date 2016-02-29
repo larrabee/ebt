@@ -3,7 +3,7 @@ __author__ = 'larrabee'
 import modules.btrfs
 import modules.cleaner
 import modules.copy
-import modules.system
+import modules.sys_mod
 import logging
 import datetime
 

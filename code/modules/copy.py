@@ -1,5 +1,5 @@
 __author__ = 'larrabee'
-import modules.system
+import modules.sys_mod
 import sys
 import logging
 
@@ -32,7 +32,7 @@ class Rsync():
         assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'.format('dest', __name__, sys._getframe().f_code.co_name)
         assert isinstance(rsync_options, str), '{1}.{2}: variable "{0}" has wrong type.'.format('rsync_options', __name__, sys._getframe().f_code.co_name)
         command = 'rsync -{0}{1}{2} {3} {4}'.format(rsync_options, self.__get_include(), self.__get_exclude(), source, dest)
-        modules.system.popen(command)
+        modules.sys_mod.popen(command)
         self.log.info('Successful create full copy of {0} to {1}'.format(source, dest))
 
     def diff_copy(self, source, full, dest):
@@ -41,7 +41,7 @@ class Rsync():
         assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'.format('dest', __name__, sys._getframe().f_code.co_name)
         command = 'rsync -a{0}{1} --inplace --delete --backup  --link-dest={2} {3} {4} {5}'.format(
             self.__get_include(), self.__get_exclude(), full, source, dest)
-        modules.system.popen(command)
+        modules.sys_mod.popen(command)
         self.log.info('Successful create diff copy of {0} with full {1} to {2}'.format(source, full, dest))
 
 

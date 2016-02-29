@@ -8,16 +8,22 @@ import os
 log = logging.getLogger('__main__')
 
 
-def popen(command):
+def popen(command, logging_commands=True):
     assert isinstance(command, str), '{1}.{2}: variable "{0}" has wrong type.'.format('command', __name__,
                                                                                    sys._getframe().f_code.co_name)
-    log.debug('Exec command: {0}'.format(command))
+    assert isinstance(logging_commands, bool), '{1}.{2}: variable "{0}" has wrong type.'.format('command', __name__,
+                                                                                                sys._getframe().f_code.co_name)
+    if logging_commands:
+        log.debug('Exec command: {0}'.format(command))
     process = subprocess.Popen(command.split(), stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     output = process.communicate()
     log.debug('Exit code: {0}, output: {1}'.format(process.returncode, output))
     if process.returncode != 0:
         log.error('External program exit with not zero code.')
-        raise RuntimeError('Error code:', str(process.returncode), 'Output: ', output, 'Command: ', command)
+        if logging_commands:
+            raise RuntimeError('Error code:', str(process.returncode), 'Output: ', output, 'Command: ', command)
+        else:
+            raise RuntimeError('Error code:', str(process.returncode), 'Output: ', output)
     return output
 
 

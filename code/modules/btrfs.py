@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 __author__ = 'larrabee'
-import modules.system
+import modules.sys_mod
 import sys
 import logging
 
@@ -12,7 +12,7 @@ def sub_list(path):
     assert isinstance(path, str), '{1}.{2}: variable "{0}" has wrong type.'.format('path', __name__,
                                                                                    sys._getframe().f_code.co_name)
     command = 'btrfs subvolume list {0}'.format(str(path))
-    raw_output = modules.system.popen(command)[0]
+    raw_output = modules.sys_mod.popen(command)[0]
     form_output = raw_output.decode()
     output = list()
     for string in form_output.split(sep='\n'):
@@ -28,12 +28,12 @@ def sub_del(path):
                                                                                    sys._getframe().f_code.co_name)
     if type(path) is str:
         command = 'btrfs subvolume delete {0}'.format(path)
-        modules.system.popen(command)
+        modules.sys_mod.popen(command)
         log.info('Delete btrfs subvolume {0}'.format(path))
     else:
         for subvolume in path:
             command = 'btrfs subvolume delete {0}'.format(subvolume)
-            modules.system.popen(command)
+            modules.sys_mod.popen(command)
             log.info('Delete btrfs subvolume {0}'.format(subvolume))
 
 
@@ -47,7 +47,7 @@ def sub_snap(source, dest, readonly=True):
     command = 'btrfs subvolume snapshot {0} {1}'.format(source, dest)
     if readonly:
         command += ' -r'
-    modules.system.popen(command)
+    modules.sys_mod.popen(command)
     log.info('Create snapshot of {0} to {1} , readonly: {2}'.format(source, dest, str(readonly)))
 
 
@@ -62,7 +62,7 @@ def send(source, dest, parrent_path=None):
     command = 'btrfs send {0} -f {1}'.format(source, dest)
     if parrent_path is not None:
         command += ' -p {0}'.format(parrent_path)
-    modules.system.popen(command)
+    modules.sys_mod.popen(command)
     log.info('Send subvolume {0} to {1} , parrent: {2}'.format(source, dest, str(parrent_path)))
 
 
@@ -72,5 +72,5 @@ def file_snap(source, dest):
     assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'.format('dest', __name__,
                                                                                    sys._getframe().f_code.co_name)
     command = 'cp --reflink {0} {1}'.format(source, dest)
-    modules.system.popen(command)
+    modules.sys_mod.popen(command)
     log.info('Create snapshot of file {0} to {1} , readonly: {2}'.format(source, dest))
