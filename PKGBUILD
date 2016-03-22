@@ -11,7 +11,7 @@ license=("GPL")
 depends=('python-configobj' 'rsync' 'btrfs-progs')
 source=("https://github.com/larrabee/ebt/archive/${pkgver}.zip")
 backup=('etc/ebt/ebt.conf' 'etc/ebt/plans.py')
-md5sums=('1d032313a9f2c7fd7a2d5072ef4942c7')
+md5sums=('eef466266f2023612260be149d83d579')
 
 prepare() {
   echo "prepare"

@@ -50,25 +50,23 @@ except KeyError:
     log.critical('"Config" section not found in configuration file: "{0}" or file not found'.format(config_filename))
     exit(1)
 
-#Logging
-if config['loglevel'] == 'debug':
-    log.setLevel(logging.DEBUG)
-elif config['loglevel'] == 'info':
-    log.setLevel(logging.INFO)
-elif config['loglevel'] == 'warn':
-    log.setLevel(logging.WARN)
-elif config['loglevel'] == 'error':
-    log.setLevel(logging.ERROR)
-elif config['loglevel'] == 'crit':
-    log.setLevel(logging.CRITICAL)
+if cli.version:
+    print('Version: ' + version)
+    exit(0)
 
+if cli.jobs is None:
+    print('Nothing to do')
+    exit(0)
+
+#Logging
+log_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'crit': logging.CRITICAL}
+log.setLevel(log_levels[config['loglevel']])
 
 
 try:
     if 'syslog' in config['logmethod']:
         syslog_handler = logging.handlers.SysLogHandler(address='/dev/log',  facility='user')
         log.addHandler(syslog_handler)
-        log.debug('Add syslog handler to logger')
 except KeyError:
     pass
 else:
@@ -78,7 +76,6 @@ try:
         file_handler = logging.handlers.RotatingFileHandler(config['logfile'], maxBytes=config['max_log_size'])
         file_handler.setFormatter(formater)
         log.addHandler(file_handler)
-        log.debug('Add file handler to logger')
 except KeyError:
     pass
 except FileNotFoundError:

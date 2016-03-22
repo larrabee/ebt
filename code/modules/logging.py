@@ -31,7 +31,6 @@ class BufferingSMTPHandler(logging.handlers.SMTPHandler):
             return
 
         try:
-
             port = self.mailport
             if not port:
                 port = smtplib.SMTP_PORT
