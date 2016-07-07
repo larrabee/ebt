@@ -90,7 +90,7 @@ log.info('=' * 30 + 'Program started' + '=' * 30)
 exit_code = 0
 for job in cli.jobs:
     if job not in modules.sys_mod.Sys().getfunctions(plans):
-        log.error('Job "{0}" not found in plans.py'.format(job))
+        log.error('Job "{0}" not found in plans-libvirt.py'.format(job))
         break
     log.info('-' * 30 + 'Job "{0}" started'.format(job) + '-' * 30)
     try:
