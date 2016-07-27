@@ -20,7 +20,7 @@ class Mysql:
                 db = MySQLdb.connect(host=params['host'], port=params['port'], user=params['user'], charset='utf8')
             else:
                 db = MySQLdb.connect(host=params['host'], port=params['port'], user=params['user'], passwd=params['passwd'], charset='utf8')
-        cursor = db.cursor()
+        cursor = db.cursor(MySQLdb.cursors.DictCursor)
         self.log.debug('Mysql exec command: {0}'.format(sql_command))
         cursor.execute(sql_command)
         data =  cursor.fetchall()
@@ -28,13 +28,22 @@ class Mysql:
         return data
 
     def slave_start(self, params):
-        self.exec_command(params=params, sql_command='start slave;')
+        self.exec_command(params=params, sql_command='start slave')
 
     def slave_stop(self, params):
-        self.exec_command(params=params, sql_command='stop slave;')
+        self.exec_command(params=params, sql_command='stop slave')
 
     def slave_status(self, params):
-        return self.exec_command(params=params, sql_command='SHOW SLAVE STATUS\G')[0]
+        return self.exec_command(params=params, sql_command='SHOW SLAVE STATUS')[0]
+
+    def slave_status_to_file(self, params, file_name='slave_data'):
+        slave_data_file = open('{0}/{1}'.format(params['dest'], file_name), 'w')
+        slave_status = self.slave_status(params)
+        slave_data_file.write('CHANGE MASTER TO MASTER_HOST="{0}", MASTER_PORT={1}, MASTER_USER="{2}", MASTER_LOG_FILE="{3}", MASTER_LOG_POS={4};\n' \
+                              .format(slave_status['Master_Host'], slave_status['Master_Port'], slave_status['Master_User'], slave_status['Master_Log_Files'], slave_status['Exec_Master_Log_Pos']))
+        for key, value in slave_status.iteritems():
+            slave_data_file.write('#\t{0}: {1}\n'.format(key, value))
+        slave_data_file.close()
 
     def mysqldump(self, params):
         assert isinstance(params, dict), '{1}.{2}: variable "{0}" has wrong type.' \
@@ -48,7 +57,6 @@ class Mysql:
         assert (('host' in params) and ('port' in params) and isinstance(params['host'], str) and isinstance(
             params['port'], int)) or (('unix_socket' in params) and isinstance(params['unix_socket'], str))
 
-        #open('{0}/slave_data'.format(params['dest']), 'w').write(str(self.slave_status(params)))
         for database in params['db']:
             command = 'mysqldump'
             if 'unix_socket' in params:
