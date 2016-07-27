@@ -40,7 +40,7 @@ class Mysql:
         slave_data_file = open('{0}/{1}'.format(params['dest'], file_name), 'w')
         slave_status = self.slave_status(params)
         slave_data_file.write('CHANGE MASTER TO MASTER_HOST="{0}", MASTER_PORT={1}, MASTER_USER="{2}", MASTER_LOG_FILE="{3}", MASTER_LOG_POS={4};\n' \
-                              .format(slave_status['Master_Host'], slave_status['Master_Port'], slave_status['Master_User'], slave_status['Master_Log_Files'], slave_status['Exec_Master_Log_Pos']))
+                              .format(slave_status['Master_Host'], slave_status['Master_Port'], slave_status['Master_User'], slave_status['Master_Log_File'], slave_status['Exec_Master_Log_Pos']))
         for key, value in slave_status.iteritems():
             slave_data_file.write('#\t{0}: {1}\n'.format(key, value))
         slave_data_file.close()
