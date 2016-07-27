@@ -9,28 +9,32 @@ class Mysql:
     def __init__(self):
         self.log = logging.getLogger('__main__')
 
-    def connect_to_tcp(self, user, passwd, host='localhost', port=3306):
-        self.con = MySQLdb.connect(host=host, user=user, passwd=passwd, port=port)
-        self.cur = self.con.cursor(MySQLdb.cursors.DictCursor)
+    def exec_command(self, params, sql_command):
+        if 'unix_socket' in params:
+            if params['passwd'] is None:
+                db = MySQLdb.connect(unix_socket=params['unix_socket'], user=params['user'], charset='utf8')
+            else:
+                db = MySQLdb.connect(unix_socket=params['unix_socket'], user=params['user'], passwd=params['passwd'], charset='utf8')
+        else:
+            if params['passwd'] is None:
+                db = MySQLdb.connect(host=params['host'], port=params['port'], user=params['user'], charset='utf8')
+            else:
+                db = MySQLdb.connect(host=params['host'], port=params['port'], user=params['user'], passwd=params['passwd'], charset='utf8')
+        cursor = db.cursor()
+        self.log.debug('Mysql exec command: {0}'.format(sql_command))
+        cursor.execute(sql_command)
+        data =  cursor.fetchall()
+        db.commit()
+        return data
 
-    def connect_to_unix(self, user, passwd, unix_socket='/var/lib/mysql/mysql.sock'):
-        self.con = MySQLdb.connect(unix_socket=unix_socket, user=user, passwd=passwd)
-        self.cur = self.con.cursor(MySQLdb.cursors.DictCursor)
+    def slave_start(self, params):
+        self.exec_command(params=params, sql_command='start slave;')
 
-    def slave_status(self):
-        self.cur.execute('show slave status')
-        slave_status = self.cur.fetchone()
-        slave_sql_running = 1 if slave_status["Slave_SQL_Running"] == "Yes" else 0
-        slave_io_running = 1 if slave_status["Slave_IO_Running"] == "Yes" else 0
-        return slave_io_running + slave_sql_running
+    def slave_stop(self, params):
+        self.exec_command(params=params, sql_command='stop slave;')
 
-    def slave_stop(self):
-        self.cur.execute('stop slave')
-        return self.slave_status()
-
-    def slave_start(self):
-        self.cur.execute('start slave')
-        return self.slave_status()
+    def slave_status(self, params):
+        return self.exec_command(params=params, sql_command='SHOW SLAVE STATUS\G')[0]
 
     def mysqldump(self, params):
         assert isinstance(params, dict), '{1}.{2}: variable "{0}" has wrong type.' \
@@ -44,6 +48,7 @@ class Mysql:
         assert (('host' in params) and ('port' in params) and isinstance(params['host'], str) and isinstance(
             params['port'], int)) or (('unix_socket' in params) and isinstance(params['unix_socket'], str))
 
+        #open('{0}/slave_data'.format(params['dest']), 'w').write(str(self.slave_status(params)))
         for database in params['db']:
             command = 'mysqldump'
             if 'unix_socket' in params:
@@ -54,7 +59,7 @@ class Mysql:
                 command += ' -p{0}'.format(params['passwd'])
             command += ' -u{0} {1} {2}'.format(params['user'], params['dump_args'], database)
             if params['compress_level'] > 0:
-                command += ' |gzip -c -{0} > {1}/{2}.sql.gz'.format(params['compress_level'], params['dest'], database)
+                command += ' |pbzip2 -c > {0}/{1}.sql.pbzip2'.format(params['dest'], database)
             else:
                 command += ' > {0}/{1}.sql'.format(params['dest'], database)
             self.log.debug('Mysql dump command: {0}'.format(command))

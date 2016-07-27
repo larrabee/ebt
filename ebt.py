@@ -14,27 +14,28 @@ import os
 import modules.custom_logging
 import modules.sys_mod
 
-conf_dir = '/etc/ebt'
-sys.path.append(conf_dir)
-import plans
-
 # Base vars
-version = '1.0'
-config_filename = conf_dir + '/ebt.conf'
+version = '1.1'
 config_spec_filename = os.path.dirname(os.path.realpath(__file__)) + '/ebt.spec'
 
 # Command line parser
 cli_parser = argparse.ArgumentParser()
 cli_parser.add_argument('-j', '--jobs', nargs='+', help='List of jobs to run')
+cli_parser.add_argument('-p', '--plan', default='/etc/ebt/plans.py', type=str, help='Custom path to plans file')
+cli_parser.add_argument('-c', '--config', default='/etc/ebt/ebt.conf', type=str, help='Custom path to config file')
 cli_parser.add_argument('-v', '--version', default=False, action='store_true', help='Display program version and exit')
 cli = cli_parser.parse_args()
+
+#Import plans file
+sys.path.append(os.path.dirname(cli.plan))
+plans = __import__(os.path.splitext(os.path.basename(cli.plan))[0])
 
 # Base logging
 log_configurator = modules.custom_logging.Configurator()
 log = log_configurator.get_logger()
 
 # Config Parser
-cfg_parser = ConfigObj(config_filename, configspec=config_spec_filename)
+cfg_parser = ConfigObj(cli.config, configspec=config_spec_filename)
 validator = Validator()
 result = cfg_parser.validate(validator)
 if result is not True:
@@ -45,7 +46,7 @@ if result is not True:
 try:
     config = cfg_parser['Config']
 except KeyError:
-    log.critical('"Config" section not found in configuration file: "{0}"'.format(config_filename))
+    log.critical('"Config" section not found in configuration file: "{0}"'.format(cli.config))
     exit(1)
 
 if cli.version:

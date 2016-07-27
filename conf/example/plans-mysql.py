@@ -36,6 +36,5 @@ def mysql():
             raise UserWarning
         mysql_client.mysqldump(instance)
         log.info('Backup databases {0} from {1}:{2} finished'.format(instance['db'], instance['host'], instance['port']))
-        log.info('Start slave on server {0}:{1}'.format(instance['host'], instance['port']))
-        mysql_client.slave_start()
-
+    log.info('Start slave on server {0}:{1}'.format(instance['host'], instance['port']))
+    mysql_client.slave_start()
