@@ -131,7 +131,7 @@ class LVM:
     def __init__(self):
         self.log = logging.getLogger('__main__')
 
-    def create_snapshot(self, source, size='5G', snap_suff='-snap'):
+    def create_snapshot(self, source, size='10G', snap_suff='-snap'):
         assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('source', __name__, sys._getframe().f_code.co_name)
         assert isinstance(snap_suff, str), '{1}.{2}: variable "{0}" has wrong type.' \
