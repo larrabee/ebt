@@ -67,7 +67,7 @@ class Mysql:
                 command += ' -p{0}'.format(params['passwd'])
             command += ' -u{0} {1} {2}'.format(params['user'], params['dump_args'], database)
             if params['compress_level'] > 0:
-                command += ' |pbzip2 -c > {0}/{1}.sql.pbzip2'.format(params['dest'], database)
+                command += ' |pigz -c -{2} > {0}/{1}.sql.gz'.format(params['dest'], database, params['compress_level'])
             else:
                 command += ' > {0}/{1}.sql'.format(params['dest'], database)
             self.log.debug('Mysql dump command: {0}'.format(command))
