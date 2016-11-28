@@ -170,6 +170,6 @@ class LVM:
         assert isinstance(block_device, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('block_device', __name__, sys._getframe().f_code.co_name)
         command = 'blockdev --getsize64 {0}'.format(block_device)
-        size = Sys().popen(command=command)
-        return size
+        size = str(Sys().popen(command=command)[0]).replace('\n', '')
+        return int(size)
         
