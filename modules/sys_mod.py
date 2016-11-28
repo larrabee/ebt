@@ -165,3 +165,11 @@ class LVM:
         command = 'lvremove -A y {0} --force'.format(snap_name)
         self.log.info('Remove snapshot {0} of volume {1}'.format(snap_name, source))
         Sys().popen(command=command)
+    
+    def get_device_size(self, block_device):
+        assert isinstance(block_device, str), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('block_device', __name__, sys._getframe().f_code.co_name)
+        command = 'blockdev --getsize64 {0}'.format(block_device)
+        size = Sys().popen(command=command)
+        return size
+        
