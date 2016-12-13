@@ -91,7 +91,8 @@ log.info('=' * 30 + 'Program started' + '=' * 30)
 exit_code = 0
 for job in cli.jobs:
     if job not in modules.sys_mod.Sys().getfunctions(plans):
-        log.error('Job "{0}" not found in plans-libvirt.py'.format(job))
+        log.error('Job "{0}" not found in "{1}"'.format(job, cli.plan))
+        exit_code = 1
         break
     log.info('-' * 30 + 'Job "{0}" started'.format(job) + '-' * 30)
     try:
@@ -101,11 +102,11 @@ for job in cli.jobs:
         log.error('Assertion Error: {0}'.format(e))
         _, _, tb = sys.exc_info()
         log.debug(traceback.format_tb(tb))
-        exit_code = 255
+        exit_code = 1
     except Exception as e:
         log.error(e)
         log.debug(traceback.format_exc())
-        exit_code =255
+        exit_code = 1
     log.info('-' * 30 + 'Job "{0}" finished'.format(job) + '-' * 30)
 log.info('=' * 30 + 'Program halted' + '=' * 30)
 exit(exit_code)
