@@ -113,7 +113,7 @@ class Btrfs:
         assert isinstance(parrent_path, str) or (
         parrent_path is None), '{1}.{2}: variable "{0}" has wrong type.'\
             .format('parrent_path', __name__, sys._getframe().f_code.co_name)
-        command = 'btrfs send {0} -f {1}'.format(source)
+        command = 'btrfs send {0}'.format(source)
         if parrent_path is not None:
             command += ' -p {0}'.format(parrent_path)
         if compress is True:
