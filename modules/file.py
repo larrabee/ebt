@@ -2,6 +2,9 @@ __author__ = 'larrabee'
 import modules.sys_mod
 import sys
 import logging
+import sys
+import struct
+import ctypes, os
 
 
 class Rsync:

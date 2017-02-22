@@ -103,18 +103,23 @@ class Btrfs:
         Sys().popen(command)
         self.log.info('Create snapshot of {0} to {1} , readonly: {2}'.format(source, dest, str(readonly)))
 
-    def send(self, source, dest, parrent_path=None):
+    def send(self, source, dest, parrent_path=None, compress=False):
         assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.'\
             .format('source', __name__, sys._getframe().f_code.co_name)
         assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.'\
             .format('dest', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(compress, bool), '{1}.{2}: variable "{0}" has wrong type.'\
+            .format('compress', __name__, sys._getframe().f_code.co_name)
         assert isinstance(parrent_path, str) or (
         parrent_path is None), '{1}.{2}: variable "{0}" has wrong type.'\
             .format('parrent_path', __name__, sys._getframe().f_code.co_name)
-        command = 'btrfs send {0} -f {1}'.format(source, dest)
+        command = 'btrfs send {0} -f {1}'.format(source)
         if parrent_path is not None:
             command += ' -p {0}'.format(parrent_path)
-        Sys().popen(command)
+        if compress is True:
+            command += " |pigz -c"
+        command += " > {0}".format(dest)
+        Sys().popen(command, shell=True)
         self.log.info('Send subvolume {0} to {1} , parrent: {2}'.format(source, dest, str(parrent_path)))
 
     def file_snap(self, source, dest):
