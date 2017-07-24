@@ -97,6 +97,8 @@ class Mysql:
         command += ' -u{0} {1} {2}'.format(params['user'], params['dump_args'])
         if params['compress']:
             command += ' --compress --compress-threads={0}'.format(params['compress-threads'])
+        if params['db']:
+            command += ' --databases {0}'.format(' '.join(params['db']))
         command += ' {0}'.format(params['dest'])
         self.log.debug('Innobackupex command: {0}'.format(command))
         modules.sys_mod.Sys().popen(command=command, shell=True)
