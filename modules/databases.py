@@ -72,3 +72,31 @@ class Mysql:
                 command += ' > {0}/{1}.sql'.format(params['dest'], database)
             self.log.debug('Mysql dump command: {0}'.format(command))
             modules.sys_mod.Sys().popen(command=command, shell=True)
+            
+    def innobackupex(self, params):
+        assert isinstance(params, dict), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('params', __name__, sys._getframe().f_code.co_name)
+        assert ('user' in params) and isinstance(params['user'], str)
+        assert ('passwd' in params) and (isinstance(params['passwd'], str) or isinstance(params['passwd'], None))
+        assert ('db' in params) and (isinstance(params['db'], list) or (params['db'] is None))
+        assert ('dump_args' in params) and isinstance(params['dump_args'], str)
+        assert ('compress' in params) and (params['compress'] is bool)
+        if params['compress']:
+            assert ('compress-threads' in params) and (params['compress-threads'] in range(1, 99))
+        assert ('dest' in params) and isinstance(params['dest'], str)
+        assert (('host' in params) and ('port' in params) and isinstance(params['host'], str) and isinstance(
+            params['port'], int)) or (('unix_socket' in params) and isinstance(params['unix_socket'], str))
+        
+        command = 'innobackupex'
+        if 'unix_socket' in params:
+            command += ' -S{0}'.format(params['unix_socket'])
+        else:
+            command += ' -h{0} -P{1}'.format(params['host'], params['port'])
+        if params['passwd'] is not None:
+            command += ' -p{0}'.format(params['passwd'])
+        command += ' -u{0} {1} {2}'.format(params['user'], params['dump_args'])
+        if params['compress']:
+            command += ' --compress --compress-threads={0}'.format(params['compress-threads'])
+        command += ' {0}'.format(params['dest'])
+        self.log.debug('Innobackupex command: {0}'.format(command))
+        modules.sys_mod.Sys().popen(command=command, shell=True)
