@@ -94,7 +94,7 @@ class Mysql:
             command += ' -h{0} -P{1}'.format(params['host'], params['port'])
         if params['passwd'] is not None:
             command += ' -p{0}'.format(params['passwd'])
-        command += ' -u{0} {1} {2}'.format(params['user'], params['dump_args'])
+        command += ' -u{0} {1}'.format(params['user'], params['dump_args'])
         if params['compress']:
             command += ' --compress --compress-threads={0}'.format(params['compress-threads'])
         if params['db']:
