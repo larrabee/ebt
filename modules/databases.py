@@ -80,7 +80,7 @@ class Mysql:
         assert ('passwd' in params) and (isinstance(params['passwd'], str) or isinstance(params['passwd'], None))
         assert ('db' in params) and (isinstance(params['db'], list) or (params['db'] is None))
         assert ('dump_args' in params) and isinstance(params['dump_args'], str)
-        assert ('compress' in params) and (params['compress'] is bool)
+        assert ('compress' in params) and isinstance(params['compress'], bool)
         if params['compress']:
             assert ('compress-threads' in params) and (params['compress-threads'] in range(1, 99))
         assert ('dest' in params) and isinstance(params['dest'], str)
