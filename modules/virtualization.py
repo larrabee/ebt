@@ -25,11 +25,15 @@ class Libvirt():
             if disk.attrib['device'] in ('disk',):
                 if (disk.find('source') is not None) and (disk.find('source').get('dev') is not None):
                     disk_info['path'] = disk.find('source').get('dev')
+                    disk_info['target'] = disk.find('target').get('dev')
                     disk_info['source_type'] = 'dev'
+                    disk_info['snapshot_path'] = None
                     disks_list.append(disk_info)
                 elif (disk.find('source') is not None) and (disk.find('source').get('file') is not None):
                     disk_info['path'] = disk.find('source').get('file')
+                    disk_info['target'] = disk.find('target').get('dev')
                     disk_info['source_type'] = 'file'
+                    disk_info['snapshot_path'] = None
                     disks_list.append(disk_info)
         return disks_list
 
@@ -55,3 +59,21 @@ class Libvirt():
 
     def restore(self, path):
         self.conn.restore(path)
+    
+    def create_snaapshot_xml(self, disks, memory_dump=None):
+        snap_xmp =ET.
+        
+    def create_snaapshot_xml(self, disks, memory_dump=None):
+        snap_xml = ET.Element('domainsnapshot')
+        disks_xml = ET.SubElement(snap_xml, 'disks')
+        if memory_dump is None:
+            ET.SubElement(snap_xml, 'memory', {'snapshot': 'no'})
+        else:
+            ET.SubElement(snap_xml, 'memory', {'snapshot': 'external', 'file': memory_dump})
+        for disk in disks:
+            if disk['snapshot_path'] is None:
+                ET.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'no'})
+            else:
+                disk_xml = ET.SubElement(disks_xml, 'disk', {'name': disk['target']})
+                ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
+        return snap_xml

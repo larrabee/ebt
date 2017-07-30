@@ -19,10 +19,10 @@ class Sys:
         if logging_commands:
             self.log.debug('Exec command: {0}'.format(command))
         if shell:
-            process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=shell, executable=executable, cwd=cwd)
+            process = subprocess.Popen(command, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=shell, executable=executable, cwd=cwd)
         else:
-            process = subprocess.Popen(command.split(), stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=cwd)
-        output = process.communicate()
+            process = subprocess.Popen(command.split(), stderr=subprocess.STDOUT, stdout=subprocess.PIPE, cwd=cwd)
+        output = process.communicate()[0]
         self.log.debug('Exit code: {0}, output: {1}'.format(process.returncode, output))
         if process.returncode != 0:
             self.log.error('External program exit with not zero code.')
