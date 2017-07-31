@@ -71,16 +71,16 @@ class Libvirt():
             if disk['snapshot_path'] is None:
                 ET.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'no'})
             else:
-                disk_xml = ET.SubElement(disks_xml, 'disk', {'name': disk['target']})
+                disk_xml = ET.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'external'})
                 ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
         snap_xml_str = ET.tostring(snap_xml, encoding='utf8', method='xml')
         return snap_xml_str
         
-    def create_vm_snapshot(self, domain, disks, memory_path=None, live=True, atomic=True, quiesce=False):
+    def create_vm_snapshot(self, domain, disks, memory_path=None, atomic=True, quiesce=False):
         flags = 0
         if memory_path is None:
             flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY
-        if live:
+        else:
             flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_LIVE
         if atomic:
             flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_ATOMIC
@@ -90,6 +90,9 @@ class Libvirt():
         snap = domain.snapshotCreateXML(snap_xml, flags)
         return snap
         
-    def remove_vm_snapshot(self, snapshot):
-        print(dir(snapshot))
+    def remove_vm_snapshot(self, domain, disks):
+        flags = libvirt.VIR_DOMAIN_BLOCK_COMMIT_ACTIVE
+        for disk in disks:
+            domain.blockCommit(disk=disk['target'], base=None, top=None, flags=flags)
+        
         
