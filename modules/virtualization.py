@@ -77,3 +77,21 @@ class Libvirt():
                 disk_xml = ET.SubElement(disks_xml, 'disk', {'name': disk['target']})
                 ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
         return snap_xml
+        
+    def create_vm_snapshot(self, domain, disks, memory_dump=None, live=True, atomic=True, quiesce=False):
+        flags = 0
+        if dump_memory is None:
+            flags += 16
+        if live:
+            flags += 25
+        if atomic:
+            flags += 128
+        if quiesce:
+            flags += 64
+        snap_xml = self.create_snaapshot_xml(disks, memory_dump)
+        snap = domain.snapshotCreateXML(snap_xml, flags)
+        return snap
+        
+    def remove_vm_snapshot(self, snapshot):
+        print(dir(snapshot))
+        
