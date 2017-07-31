@@ -4,6 +4,8 @@ import os
 import libvirt
 from xml.etree import ElementTree as ET
 from lxml import etree
+import time
+import modules.sys_mod
 
 class Libvirt():
     def __init__(self, uri='qemu:///system'):
@@ -61,6 +63,10 @@ class Libvirt():
         self.conn.restore(path)
         
     def create_snaapshot_xml(self, disks, memory_path=None):
+        assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('disks', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(memory_path, None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('memory_path', __name__, sys._getframe().f_code.co_name)
         snap_xml = ET.Element('domainsnapshot')
         disks_xml = ET.SubElement(snap_xml, 'disks')
         if memory_path is None:
@@ -77,6 +83,16 @@ class Libvirt():
         return snap_xml_str
         
     def create_vm_snapshot(self, domain, disks, memory_path=None, atomic=True, quiesce=False):
+        assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('domain', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('disks', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(memory_path, None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('memory_path', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(atomic, bool), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('atomic', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(quiesce, bool), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('quiesce', __name__, sys._getframe().f_code.co_name)
         flags = 0
         if memory_path is None:
             flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY
@@ -91,9 +107,20 @@ class Libvirt():
         return snap
         
     def remove_vm_snapshot(self, domain, disks):
+        assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('domain', __name__, sys._getframe().f_code.co_name)
+        assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
+            .format('disks', __name__, sys._getframe().f_code.co_name)
         flags = libvirt.VIR_DOMAIN_BLOCK_COMMIT_ACTIVE
         for disk in disks:
-            domain.blockCommit(disk=disk['target'], base=None, top=None, flags=flags)
-            domain.blockJobAbort(disk=disk['target'], flags=libvirt.VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT)
-        
+            if disk['snapshot_path'] is not None
+                domain.blockCommit(disk=disk['target'], base=None, top=None, flags=flags)
+                while True:
+                    status = domain.blockJobInfo(disk['target'])
+                    print(status)
+                    if status['end'] == status['cur']:
+                        domain.blockJobAbort(disk=disk['target'], flags=libvirt.VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT)
+                        sys_mod.Sys().rm(disk['snapshot_path'])
+                    else:
+                        time.sleep(3)
         
