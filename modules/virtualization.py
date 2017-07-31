@@ -94,5 +94,6 @@ class Libvirt():
         flags = libvirt.VIR_DOMAIN_BLOCK_COMMIT_ACTIVE
         for disk in disks:
             domain.blockCommit(disk=disk['target'], base=None, top=None, flags=flags)
+            domain.blockJobAbort(disk=disk['target'], flags=libvirt.VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT)
         
         
