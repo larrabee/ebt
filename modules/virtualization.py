@@ -3,6 +3,7 @@ import sys
 import os
 import libvirt
 from xml.etree import ElementTree as ET
+from lxml import etree
 
 class Libvirt():
     def __init__(self, uri='qemu:///system'):
@@ -72,18 +73,19 @@ class Libvirt():
             else:
                 disk_xml = ET.SubElement(disks_xml, 'disk', {'name': disk['target']})
                 ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
-        return snap_xml
+        snap_xml_str = ET.tostring(snap_xml, encoding='utf8', method='xml')
+        return snap_xml_str
         
     def create_vm_snapshot(self, domain, disks, memory_path=None, live=True, atomic=True, quiesce=False):
         flags = 0
         if memory_path is None:
-            flags += 16
+            flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_DISK_ONLY
         if live:
-            flags += 25
+            flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_LIVE
         if atomic:
-            flags += 128
+            flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_ATOMIC
         if quiesce:
-            flags += 64
+            flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_QUIESCE
         snap_xml = self.create_snaapshot_xml(disks, memory_path)
         snap = domain.snapshotCreateXML(snap_xml, flags)
         return snap
