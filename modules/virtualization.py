@@ -62,10 +62,10 @@ class Libvirt():
     def create_snaapshot_xml(self, disks, memory_path=None):
         snap_xml = ET.Element('domainsnapshot')
         disks_xml = ET.SubElement(snap_xml, 'disks')
-        if memory_dump is None:
+        if memory_path is None:
             ET.SubElement(snap_xml, 'memory', {'snapshot': 'no'})
         else:
-            ET.SubElement(snap_xml, 'memory', {'snapshot': 'external', 'file': memory_dump})
+            ET.SubElement(snap_xml, 'memory', {'snapshot': 'external', 'file': memory_path})
         for disk in disks:
             if disk['snapshot_path'] is None:
                 ET.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'no'})
