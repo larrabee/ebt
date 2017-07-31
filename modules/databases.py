@@ -49,7 +49,7 @@ class Mysql:
         assert isinstance(params, dict), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('params', __name__, sys._getframe().f_code.co_name)
         assert ('user' in params) and isinstance(params['user'], str)
-        assert ('passwd' in params) and (isinstance(params['passwd'], str) or isinstance(params['passwd'], None))
+        assert ('passwd' in params) and (isinstance(params['passwd'], str) or (params['passwd'] is None))
         assert ('db' in params) and isinstance(params['db'], list) and isinstance(params['db'][0], str)
         assert ('dump_args' in params) and isinstance(params['dump_args'], str)
         assert ('compress_level' in params) and (params['compress_level'] in range(0, 9))

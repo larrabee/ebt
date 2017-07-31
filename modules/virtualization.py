@@ -65,7 +65,7 @@ class Libvirt():
     def create_snaapshot_xml(self, disks, memory_path=None):
         assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('disks', __name__, sys._getframe().f_code.co_name)
-        assert isinstance(memory_path, None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
+        assert (memory_path is None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('memory_path', __name__, sys._getframe().f_code.co_name)
         snap_xml = ET.Element('domainsnapshot')
         disks_xml = ET.SubElement(snap_xml, 'disks')
@@ -87,7 +87,7 @@ class Libvirt():
             .format('domain', __name__, sys._getframe().f_code.co_name)
         assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('disks', __name__, sys._getframe().f_code.co_name)
-        assert isinstance(memory_path, None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
+        assert (memory_path is None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('memory_path', __name__, sys._getframe().f_code.co_name)
         assert isinstance(atomic, bool), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('atomic', __name__, sys._getframe().f_code.co_name)
@@ -113,7 +113,7 @@ class Libvirt():
             .format('disks', __name__, sys._getframe().f_code.co_name)
         flags = libvirt.VIR_DOMAIN_BLOCK_COMMIT_ACTIVE
         for disk in disks:
-            if disk['snapshot_path'] is not None
+            if disk['snapshot_path'] is not None:
                 domain.blockCommit(disk=disk['target'], base=None, top=None, flags=flags)
                 while True:
                     status = domain.blockJobInfo(disk['target'])
