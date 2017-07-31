@@ -38,3 +38,24 @@ def mysql():
         log.info('Backup databases {0} from {1}:{2} finished'.format(instance['db'], instance['host'], instance['port']))
     log.info('Start slave on server {0}:{1}'.format(instance['host'], instance['port']))
     mysql_client.slave_start()
+
+
+def mysql_innobackupex():
+    backup_date = datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')
+    instances = [{'host': 'db.lan', 'port': 4302, 'user': 'root', 'passwd': '123', 'db': ['test', ],
+                  'dump_args': '--routines --triggers --dump-slave --include-master-host-port',
+                  'dest': '/mnt/tmp/', 'compress_level': 3},
+                 ]
+
+    for instance in instances:
+        try:
+            modules.sys_mod.Sys().rm(instance['dest'])
+        except Exception:
+            pass
+        mysql_client = modules.databases.Mysql()
+        instance['dest'] += '/{0}'.format(backup_date)
+        log.info('Create dest dir: {0}'.format(instance['dest']))
+        os.makedirs(instance['dest'])
+        log.info('Start backup databases from {0}'.format(instance['unix_socket']))
+        mysql_client.innobackupex(instance)
+        log.info('Backup databases from {0} finished'.format(instance['unix_socket']))

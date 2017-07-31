@@ -13,7 +13,7 @@ log = logging.getLogger('__main__')
 
 
 
-def vm_full(dest_dir, dayexp=30, store_last=5, exclude=list(), include=list()):
+def vm_full(dest_dir, dayexp=None, store_last=5, exclude=list(), include=list(), exclude_disks=list(), dump_memory=True):
     backup_date = datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')
     dest = dest_dir + '/' + backup_date
     #Delete old backups
@@ -31,28 +31,85 @@ def vm_full(dest_dir, dayexp=30, store_last=5, exclude=list(), include=list()):
         os.makedirs('{0}/{1}'.format(dest, domain.name()))
         log.info('Export domain XML to {0}/{1}/{1}.xml'.format(dest, domain.name()))
         libvirt_mod.export_xml(domain=domain, path='{0}/{1}/{1}.xml'.format(dest, domain.name()))
-        log.debug('Save memory image to {0}/{1}/memory.save'.format(dest, domain.name()))
-        domain.save(to='{0}/{1}/memory.save'.format(dest, domain.name()))
+        if (dump_memory is True) and (domain.isActive() == 1):
+            log.debug('Save memory image to {0}/{1}/memory.save'.format(dest, domain.name()))
+            domain.save(to='{0}/{1}/memory.save'.format(dest, domain.name()))
+        elif (dump_memory is False) and (domain.isActive() == 1):
+            log.debug('Suspending domain {0}'.format(domain.name()))
+            domain.suspend()
         domain_disks = libvirt_mod.get_domain_disks(domain)
         for disk in domain_disks:
-            if disk['source_type'] == 'dev':
+            if (disk['source_type'] == 'dev') and (disk['path'] not in exclude_disks):
                 log.info('Create snapshot of disk {0}'.format(disk['path']))
                 modules.sys_mod.LVM().remove_snap_if_exist(source=disk['path'])
                 modules.sys_mod.LVM().create_snapshot(source=disk['path'])
-            elif disk['source_type'] == 'file':
-                log.info('Create copy of disk {3} to {0}/{1}/{2'.format(dest, domain.name(), os.path.basename(disk['path']), disk['path']))
+            elif (disk['source_type'] == 'file') and (disk['path'] not in exclude_disks):
+                log.info('Create copy of disk {3} to {0}/{1}/{2}'.format(dest, domain.name(), os.path.basename(disk['path']), disk['path']))
                 modules.file.Rsync().full_copy(source=disk['path'], dest='{0}/{1}/{2}'.format(dest, domain.name(), os.path.basename(disk['path'])))
-        log.info('Restore memory from file {0}/{1}/memory.save'.format(dest, domain.name()))
-        libvirt_mod.restore('{0}/{1}/memory.save'.format(dest, domain.name()))
+        if (dump_memory is True) and (domain.isActive() == 0) and (os.path.isfile("{0}/{1}/memory.save".format(dest, domain.name())) is True):
+            log.info('Restore memory from file {0}/{1}/memory.save'.format(dest, domain.name()))
+            libvirt_mod.restore('{0}/{1}/memory.save'.format(dest, domain.name()))
+        elif (dump_memory is False) and (domain.isActive() == 1):
+            log.debug('Resuming domain {0}'.format(domain.name()))
+            domain.resume()
         for disk in domain_disks:
-            if disk['source_type'] == 'dev':
+            if (disk['source_type'] == 'dev') and (disk['path'] not in exclude_disks):
                 log.info('Create copy of snapshot {3}-snap to {0}/{1}/{2}.img.gz'.format(dest, domain.name(), os.path.basename(disk['path']), disk['path']))
                 modules.file.DD().dd_with_compression(source='{0}-snap'.format(disk['path']), dest='{0}/{1}/{2}.img.gz'.format(dest, domain.name(), os.path.basename(disk['path'])))
+                open(mode='w', name='{0}/{1}/{2}.img.size'.format(dest, domain.name(), os.path.basename(disk['path']))).write(str(modules.sys_mod.LVM().get_device_size(disk['path'])))
                 log.info('Remove snapshot {0}-snap'.format(disk['path']))
                 modules.sys_mod.LVM().remove_snap(disk['path'])
 
+
+def vm_full_external(dest_dir, snap_dir, dayexp=None, store_last=5, exclude=list(), include=list(), exclude_disks=list(), dump_memory=True):
+    backup_date = datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')
+    dest = dest_dir + '/' + backup_date
+    snap = snap_dir + '/' + backup_date
+    #Delete old backups
+    try:
+        modules.sys_mod.Sys().rm(modules.cleaner.filter_list(path=dest_dir, dayexp=dayexp, store_last=store_last))
+        if dest_dir != snap_dir:
+            modules.sys_mod.Sys().rm(modules.cleaner.filter_list(path=snap_dir, dayexp=dayexp, store_last=store_last))
+    except Exception as e:
+        log.error('Delete old backups failed')
+        log.debug(e)
+    #Create Backup
+    libvirt_mod = modules.virtualization.Libvirt()
+    libvirt_mod.exclude = exclude
+    libvirt_mod.include = include
+    for domain in libvirt_mod.filter_domain_list(libvirt_mod.list_domains()):
+        log.info('Start backup domain {0}'.format(domain.name()))
+        os.makedirs('{0}/{1}'.format(dest, domain.name()))
+        if dest_dir != snap_dir:
+            os.makedirs('{0}/{1}'.format(snap, domain.name()))
+        log.info('Export domain XML to {0}/{1}/{1}.xml'.format(dest, domain.name()))
+        libvirt_mod.export_xml(domain=domain, path='{0}/{1}/{1}.xml'.format(dest, domain.name()))
+        domain_disks = libvirt_mod.get_domain_disks(domain)
+        if (dump_memory is True) and (domain.isActive() == 1):
+            log.debug('Save memory image to {0}/{1}/memory.save'.format(dest, domain.name()))
+            memory_path = '{0}/{1}/memory.save'.format(dest, domain.name())
+        else:
+            memory_path = None
+        #For every disk, that not excluded add snapshot path
+        for index, disk in enumerate(domain_disks):
+            if disk['path'] not in exclude_disks:
+                domain_disks[index]['snapshot_path'] = '{0}/{1}/snapshot_{2}.qcow2'.format(snap, domain.name(), disk['target'])
+        log.info('Create snapshot of domain {0}'.format(domain.name()))
+        libvirt_mod.create_vm_snapshot(domain, domain_disks, memory_path=memory_path)
+        for disk in domain_disks:
+            if (disk['path'] not in exclude_disks):
+                log.info('Create copy of {3} to {0}/{1}/{2}.img.gz'.format(dest, domain.name(), os.path.basename(disk['path']), disk['path']))
+                modules.file.DD().dd_with_compression(source=disk['path'], dest='{0}/{1}/{2}.img.gz'.format(dest, domain.name(), os.path.basename(disk['path'])))
+                open(mode='w', name='{0}/{1}/{2}.img.size'.format(dest, domain.name(), os.path.basename(disk['path']))).write(str(libvirt_mod.device_size(domain, disk['target'])))
+        log.info('Remove snapshot of domain {0}'.format(domain.name()))
+        libvirt_mod.remove_vm_snapshot(domain, domain_disks)
+
+
 def backup_vm_daily():
-    vm_full(dest_dir='/opt/backups/daily')
+    vm_full(dest_dir='/opt/backups/daily', store_last=3, dump_memory=False)
 
 def backup_vm_weekly():
-    vm_full(dest_dir='/opt/backups/weekly')
+    vm_full(dest_dir='/opt/backups/weekly', store_last=5, dump_memory=False)
+
+def backup_vm_external_snapshot():
+    vm_full_external(dest_dir='/opt/backups/ext_snap', snap_dir='/opt/snap', store_last=0, dump_memory=False, exclude=['all',], include=['temp',])

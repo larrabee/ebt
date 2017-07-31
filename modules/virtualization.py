@@ -60,7 +60,7 @@ class Libvirt():
         xml_file.close()
         
     def device_size(self, domain, path):
-        return domain.blockInfo(path)
+        return int(domain.blockInfo(path)[0])
 
     def restore(self, path):
         self.conn.restore(path)
