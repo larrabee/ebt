@@ -56,14 +56,10 @@ class Libvirt():
         xml_file.write(domain_xml)
         xml_file.close()
 
-
     def restore(self, path):
         self.conn.restore(path)
-    
-    def create_snaapshot_xml(self, disks, memory_dump=None):
-        snap_xmp =ET.
         
-    def create_snaapshot_xml(self, disks, memory_dump=None):
+    def create_snaapshot_xml(self, disks, memory_path=None):
         snap_xml = ET.Element('domainsnapshot')
         disks_xml = ET.SubElement(snap_xml, 'disks')
         if memory_dump is None:
@@ -78,9 +74,9 @@ class Libvirt():
                 ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
         return snap_xml
         
-    def create_vm_snapshot(self, domain, disks, memory_dump=None, live=True, atomic=True, quiesce=False):
+    def create_vm_snapshot(self, domain, disks, memory_path=None, live=True, atomic=True, quiesce=False):
         flags = 0
-        if dump_memory is None:
+        if memory_path is None:
             flags += 16
         if live:
             flags += 25
@@ -88,7 +84,7 @@ class Libvirt():
             flags += 128
         if quiesce:
             flags += 64
-        snap_xml = self.create_snaapshot_xml(disks, memory_dump)
+        snap_xml = self.create_snaapshot_xml(disks, memory_path)
         snap = domain.snapshotCreateXML(snap_xml, flags)
         return snap
         
