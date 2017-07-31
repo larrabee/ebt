@@ -117,10 +117,10 @@ class Libvirt():
                 domain.blockCommit(disk=disk['target'], base=None, top=None, flags=flags)
                 while True:
                     status = domain.blockJobInfo(disk['target'])
-                    print(status)
-                    if status['end'] == status['cur']:
+                    if len(status) == 0:
                         domain.blockJobAbort(disk=disk['target'], flags=libvirt.VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT)
-                        sys_mod.Sys().rm(disk['snapshot_path'])
+                        modules.sys_mod.Sys().rm(disk['snapshot_path'])
+                        break
                     else:
                         time.sleep(3)
         
