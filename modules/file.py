@@ -67,7 +67,7 @@ class Compress:
             .format('full', __name__, sys._getframe().f_code.co_name)
         assert isinstance(options, str) or isinstance(password, None), '{1}.{2}: variable "{0}" has wrong type.'\
             .format('full', __name__, sys._getframe().f_code.co_name)
-        command = '7za -mhe=on -t7z -mx={0}'.format(str(level))
+        command = '7za a -mhe=on -t7z -mx={0}'.format(str(level))
         if password is not None:
             command += ' -p{0}'.format(password)
         if options is not None:
