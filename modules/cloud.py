@@ -11,7 +11,7 @@ class Amazon:
         
     def upload_file(self, vault_name, description, path):
         if self.is_vault_exist(vault_name):
-            vault = self.glacier_client.get_vault(vault)
+            vault = self.glacier_client.get_vault(vault_name)
         else:
             vault = self.create_vault(vault_name)
         archive_id = self.__upload_file(vault=vault, description=description, path=path)
