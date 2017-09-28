@@ -7,6 +7,7 @@ from boto.glacier.layer2 import Layer2
 class Amazon:
     def __init__(self, aws_access_key_id, aws_secret_access_key, region_name):
         self.log = logging.getLogger('__main__')
+        logging.getLogger('boto').setLevel(logging.CRITICAL)
         self.glacier_client = Layer2(aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, region_name=region_name)
         
     def upload_file(self, vault_name, description, path):
