@@ -5,6 +5,7 @@ import logging
 import sys
 import struct
 import ctypes, os
+from multiprocessing import cpu_count
 
 
 class Rsync:
@@ -91,13 +92,13 @@ class DD:
         modules.sys_mod.Sys().popen(command)
         self.log.info('Successful create copy of {0} to {1}'.format(source, dest))
 
-    def dd_with_compression(self, source, dest, bs='8M', compress_level=6):
+    def dd_with_compression(self, source, dest, bs='8M', compress_level=6, compress_threads=cpu_count()):
         assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('source', __name__, sys._getframe().f_code.co_name)
         assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('dest', __name__, sys._getframe().f_code.co_name)
         assert isinstance(bs, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('bs', __name__, sys._getframe().f_code.co_name)
-        command = 'dd if={0} bs={2} |pigz -c -{3} |dd of={1} bs={2}'.format(source, dest, bs, compress_level)
+        command = 'dd if={0} bs={2} |pigz -c -{3} -p {4} |dd of={1} bs={2}'.format(source, dest, bs, compress_level, compress_threads)
         modules.sys_mod.Sys().popen(command, shell=True)
         self.log.info('Successful create compressed copy of {0} to {1}'.format(source, dest))

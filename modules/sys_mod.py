@@ -97,9 +97,10 @@ class Btrfs:
             .format('dest', __name__, sys._getframe().f_code.co_name)
         assert isinstance(readonly, bool), '{1}.{2}: variable "{0}" has wrong type.'\
             .format('readonly', __name__, sys._getframe().f_code.co_name)
-        command = 'btrfs subvolume snapshot {0} {1}'.format(source, dest)
+        command = 'btrfs subvolume snapshot'
         if readonly:
-            command += ' -r'
+            command = '{0} -r'.format(command)
+        command = '{0} "{1}" "{2}"'.format(command, source, dest)
         Sys().popen(command)
         self.log.info('Create snapshot of {0} to {1} , readonly: {2}'.format(source, dest, str(readonly)))
 
