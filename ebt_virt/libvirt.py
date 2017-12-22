@@ -1,8 +1,8 @@
 import sys
 import libvirt
-from xml.etree import ElementTree as ET
+from xml.etree import ElementTree
 import time
-import ebt_system.rm
+import ebt_system
 
 
 class Libvirt:
@@ -19,7 +19,7 @@ class Libvirt:
         assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('domain', __name__, sys._getframe().f_code.co_name)
         domain_xml = domain.XMLDesc(0)
-        root = ET.fromstring(domain_xml)
+        root = ElementTree.fromstring(domain_xml)
         disks = root.findall('./devices/disk')
         disks_list = list()
         for disk in disks:
@@ -73,19 +73,19 @@ class Libvirt:
             .format('disks', __name__, sys._getframe().f_code.co_name)
         assert (memory_path is None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('memory_path', __name__, sys._getframe().f_code.co_name)
-        snap_xml = ET.Element('domainsnapshot')
-        disks_xml = ET.SubElement(snap_xml, 'disks')
+        snap_xml = ElementTree.Element('domainsnapshot')
+        disks_xml = ElementTree.SubElement(snap_xml, 'disks')
         if memory_path is None:
-            ET.SubElement(snap_xml, 'memory', {'snapshot': 'no'})
+            ElementTree.SubElement(snap_xml, 'memory', {'snapshot': 'no'})
         else:
-            ET.SubElement(snap_xml, 'memory', {'snapshot': 'external', 'file': memory_path})
+            ElementTree.SubElement(snap_xml, 'memory', {'snapshot': 'external', 'file': memory_path})
         for disk in disks:
             if disk['snapshot_path'] is None:
-                ET.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'no'})
+                ElementTree.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'no'})
             else:
-                disk_xml = ET.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'external'})
-                ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
-        snap_xml_str = ET.tostring(snap_xml, encoding='utf8', method='xml')
+                disk_xml = ElementTree.SubElement(disks_xml, 'disk', {'name': disk['target'], 'snapshot': 'external'})
+                ElementTree.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
+        snap_xml_str = ElementTree.tostring(snap_xml, encoding='utf8', method='xml')
         return snap_xml_str
 
     def create_vm_snapshot(self, domain, disks, memory_path=None, atomic=True, quiesce=False):

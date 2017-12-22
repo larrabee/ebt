@@ -54,7 +54,7 @@ def file_create_snapshot(source, dest):
         .format('dest', __name__, sys._getframe().f_code.co_name)
     command = 'cp --reflink {0} {1}'.format(source, dest)
     popen(command)
-    log.info('Create snapshot of file {0} to {1} , readonly: {2}'.format(source, dest))
+    log.info('Create snapshot of file {0} to {1}'.format(source, dest))
 
 
 def subvolume_send(source, dest, parent_path=None, compress_level=None):

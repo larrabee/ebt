@@ -7,7 +7,9 @@ import subprocess
 log = logging.getLogger('__main__')
 
 
-def popen(command, logging_commands=True, shell=False, executable='/bin/bash', cwd='./', valid_exitcodes=[0, ]):
+def popen(command, logging_commands=True, shell=False, executable='/bin/bash', cwd='./', valid_exitcodes=None):
+    if valid_exitcodes is None:
+        valid_exitcodes = [0, ]
     assert isinstance(command, str), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('command', __name__, sys._getframe().f_code.co_name)
     assert isinstance(logging_commands, bool), '{1}.{2}: variable "{0}" has wrong type.' \

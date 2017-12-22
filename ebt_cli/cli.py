@@ -1,5 +1,5 @@
 
-def main():
+def ebt():
     import argparse
     import sys
     import traceback
