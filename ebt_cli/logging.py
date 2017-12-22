@@ -1,4 +1,3 @@
-__author__ = 'larrabee'
 import logging
 import logging.handlers
 import smtplib
@@ -57,14 +56,14 @@ class BufferingSMTPHandler(logging.handlers.SMTPHandler):
         except:
             self.handleError(self.buffer[0])
 
-class Configurator():
+
+class Configurator:
     def __init__(self):
         self.msg_format = "%(asctime)s %(levelname)s: %(message)s"
         self.date_format = "%d-%m-%Y %H:%M:%S"
         self.formatter = logging.Formatter(fmt=self.msg_format, datefmt=self.date_format)
         logging.basicConfig(format=self.msg_format, datefmt=self.date_format, level=logging.DEBUG)
         self.log = logging.getLogger("__main__")
-
 
     def get_logger(self):
         return self.log

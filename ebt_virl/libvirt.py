@@ -1,13 +1,11 @@
-__author__ = 'larrabee'
 import sys
-import os
 import libvirt
 from xml.etree import ElementTree as ET
-from lxml import etree
 import time
-import modules.sys_mod
+import ebt_system.rm
 
-class Libvirt():
+
+class Libvirt:
     def __init__(self, uri='qemu:///system'):
         self.conn = libvirt.open(uri)
         self.include = list()
@@ -16,8 +14,9 @@ class Libvirt():
     def list_domains(self):
         return self.conn.listAllDomains()
 
-    def get_domain_disks(self, domain):
-        assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.'\
+    @staticmethod
+    def get_domain_disks(domain):
+        assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('domain', __name__, sys._getframe().f_code.co_name)
         domain_xml = domain.XMLDesc(0)
         root = ET.fromstring(domain_xml)
@@ -45,7 +44,8 @@ class Libvirt():
             .format('include', __name__, sys._getframe().f_code.co_name)
         assert isinstance(self.exclude, list), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('exclude', __name__, sys._getframe().f_code.co_name)
-        assert isinstance(domains, list) and isinstance(domains[0], libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
+        assert isinstance(domains, list) and isinstance(domains[0],
+                                                        libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('domains', __name__, sys._getframe().f_code.co_name)
         filtered_list = list()
         for domain in domains:
@@ -53,19 +53,22 @@ class Libvirt():
                 filtered_list.append(domain)
         return filtered_list
 
-    def export_xml(self, domain, path):
+    @staticmethod
+    def export_xml(domain, path):
         domain_xml = domain.XMLDesc(0)
         xml_file = open(path, mode='w')
         xml_file.write(domain_xml)
         xml_file.close()
-        
-    def device_size(self, domain, path):
+
+    @staticmethod
+    def device_size(domain, path):
         return int(domain.blockInfo(path)[0])
 
     def restore(self, path):
         self.conn.restore(path)
-        
-    def create_snaapshot_xml(self, disks, memory_path=None):
+
+    @staticmethod
+    def create_snapshot_xml(disks, memory_path=None):
         assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('disks', __name__, sys._getframe().f_code.co_name)
         assert (memory_path is None) or isinstance(memory_path, str), '{1}.{2}: variable "{0}" has wrong type.' \
@@ -84,7 +87,7 @@ class Libvirt():
                 ET.SubElement(disk_xml, 'source', {'file': disk['snapshot_path']})
         snap_xml_str = ET.tostring(snap_xml, encoding='utf8', method='xml')
         return snap_xml_str
-        
+
     def create_vm_snapshot(self, domain, disks, memory_path=None, atomic=True, quiesce=False):
         assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('domain', __name__, sys._getframe().f_code.co_name)
@@ -105,11 +108,12 @@ class Libvirt():
             flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_ATOMIC
         if quiesce:
             flags |= libvirt.VIR_DOMAIN_SNAPSHOT_CREATE_QUIESCE
-        snap_xml = self.create_snaapshot_xml(disks, memory_path)
+        snap_xml = self.create_snapshot_xml(disks, memory_path)
         snap = domain.snapshotCreateXML(snap_xml, flags)
         return snap
-        
-    def remove_vm_snapshot(self, domain, disks):
+
+    @staticmethod
+    def remove_vm_snapshot(domain, disks):
         assert isinstance(domain, libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('domain', __name__, sys._getframe().f_code.co_name)
         assert isinstance(disks, list) and isinstance(disks[0], dict), '{1}.{2}: variable "{0}" has wrong type.' \
@@ -122,8 +126,8 @@ class Libvirt():
                     status = domain.blockJobInfo(disk['target'])
                     if status['cur'] == status['end']:
                         domain.blockJobAbort(disk=disk['target'], flags=libvirt.VIR_DOMAIN_BLOCK_JOB_ABORT_PIVOT)
-                        modules.sys_mod.Sys().rm(disk['snapshot_path'])
+                        ebt_system.rm(disk['snapshot_path'])
                         break
                     else:
                         time.sleep(3)
-        
+
