@@ -8,8 +8,8 @@ class BufferingSMTPHandler(logging.handlers.SMTPHandler):
     def __init__(self, mailhost, fromaddr, toaddrs, subject, credentials=None,
                  secure=None, capacity=1024 * 1000):
         logging.handlers.SMTPHandler.__init__(self, mailhost, fromaddr,
-                                              toaddrs, subject,
-                                              credentials, secure)
+                                          toaddrs, subject,
+                                          credentials, secure)
 
         self.capacity = capacity
         self.buffer = list()

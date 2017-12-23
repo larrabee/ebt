@@ -14,21 +14,21 @@ class MySQLDump(object):
         self.day_exp = day_exp
         self.store_last = store_last
 
-    def __set_backup_dest(self):
+    def _set_backup_dest(self):
         backup_date = ebt_cleaner.get_dir_name()
         self.dest = "{0}/{1}".format(self.dest_dir, backup_date)
 
-    def __cleanup_old_backups(self):
+    def _cleanup_old_backups(self):
         old_backups = ebt_cleaner.filter_list(path=self.dest_dir, dayexp=self.day_exp, store_last=self.store_last)
         rm(old_backups)
 
-    def __pre_backup(self):
+    def _pre_backup(self):
         pass
 
-    def __post_backup(self):
+    def _post_backup(self):
         pass
 
-    def __create_instance_backup(self, instance):
+    def _create_instance_backup(self, instance):
         instance['dest'] = "{0}/{1}".format(self.dest, instance['name'])
         client = ebt_db.Mysql(instance)
         log.info('Stop slave on server {0}'.format(instance['name']))
@@ -43,16 +43,16 @@ class MySQLDump(object):
         client.slave_start()
 
     def start(self):
-        self.__set_backup_dest()
-        self.__cleanup_old_backups()
-        self.__pre_backup()
+        self._set_backup_dest()
+        self._cleanup_old_backups()
+        self._pre_backup()
         for instance in self.instances:
-            self.__create_instance_backup(instance)
-        self.__post_backup()
+            self._create_instance_backup(instance)
+        self._post_backup()
 
 
 class InnoBackupEX(MySQLDump):
-    def __create_instance_backup(self, instance):
+    def _create_instance_backup(self, instance):
         instance['dest'] = "{0}/{1}".format(self.dest, instance['name'])
         client = ebt_db.Mysql(instance)
         log.info('Create dest dir: {0}'.format(instance['dest']))

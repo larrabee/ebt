@@ -1,4 +1,4 @@
-from ebt_system import popen
+from ebt_system import popen as __popen
 import logging
 import sys
 from multiprocessing import cpu_count
@@ -20,5 +20,5 @@ def create(source, dest, bs='8M', compress_level=0, compress_threads=cpu_count()
     else:
         command = 'dd if={0} of={1} bs={2}'.format(source, dest, bs)
 
-    popen(command, shell=True)
+    __popen(command, shell=True)
     log.info('Successful create copy of {0} to {1}'.format(source, dest))

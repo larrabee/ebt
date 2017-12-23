@@ -78,7 +78,10 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={},
+    package_data={
+        # If any package contains *.txt or *.rst files, include them:
+        '': ['*.spec',],
+    },
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

@@ -1,4 +1,4 @@
-from ebt_system import popen
+from ebt_system import popen as _popen
 import logging
 import sys
 
@@ -22,5 +22,5 @@ def create7z(source, dest, level=5, password=None, options=None):
     if options is not None:
         command += ' {0}'.format(options)
     command += ' {0} {1}'.format(dest, source)
-    popen(command, logging_commands=False)
+    _popen(command, logging_commands=False)
     log.info('Successful create 7z archive from {1} to {0}'.format(dest, source))

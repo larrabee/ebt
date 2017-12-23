@@ -21,21 +21,21 @@ class LibvirtBackup(object):
         self.libvirt_client.exclude = exclude_vm
         self.libvirt_client.include = include_vm
 
-    def __set_backup_dest(self):
+    def _set_backup_dest(self):
         self.backup_date = ebt_cleaner.get_dir_name()
         self.dest = "{0}/{1}".format(self.dest_dir, self.backup_date)
 
-    def __cleanup_old_backups(self):
+    def _cleanup_old_backups(self):
         old_backups = ebt_cleaner.filter_list(path=self.dest_dir, dayexp=self.day_exp, store_last=self.store_last)
         ebt_system.rm(old_backups)
 
-    def __pre_backup(self):
+    def _pre_backup(self):
         pass
 
-    def __post_backup(self):
+    def _post_backup(self):
         pass
 
-    def __create_instance_backup(self, domain):
+    def _create_instance_backup(self, domain):
         log.info('Start backup domain {0}'.format(domain.name()))
         os.makedirs('{0}/{1}'.format(self.dest, domain.name()))
         log.info('Export domain XML to {0}/{1}/{1}.xml'.format(self.dest, domain.name()))
@@ -81,13 +81,13 @@ class LibvirtBackup(object):
                 ebt_system.lvm.remove_snap(disk['path'])
 
     def start(self):
-        self.__set_backup_dest()
-        self.__cleanup_old_backups()
-        self.__pre_backup()
+        self._set_backup_dest()
+        self._cleanup_old_backups()
+        self._pre_backup()
         domains = self.libvirt_client.filter_domain_list(self.libvirt_client.list_domains())
         for domain in domains:
-            self.__create_instance_backup(domain)
-        self.__post_backup()
+            self._create_instance_backup(domain)
+        self._post_backup()
 
 
 class LibvirtBackupToGlacier(LibvirtBackup):
@@ -99,7 +99,7 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         self.vault = vault
 
     # noinspection PyMethodOverriding
-    def __post_backup(self, domain):
+    def _post_backup(self, domain):
         log.info('Compressing "{0}/{1}" to "{0}/{1}.7z"'.format(self.dest, domain.name()))
         ebt_files.archive.create7z(source="{0}/{1}".format(self.dest, domain.name()),
                                     dest="{0}/{1}.7z".format(self.dest, domain.name()), password=self.archive_pass,
@@ -112,14 +112,14 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         ebt_system.rm("{0}/{1}.7z".format(self.dest, domain.name()))
 
     def start(self):
-        self.__set_backup_dest()
-        self.__cleanup_old_backups()
-        self.__pre_backup()
+        self._set_backup_dest()
+        self._cleanup_old_backups()
+        self._pre_backup()
         domains = self.libvirt_client.filter_domain_list(self.libvirt_client.list_domains())
         for domain in domains:
-            self.__create_instance_backup(domain)
+            self._create_instance_backup(domain)
         for domain in domains:
-            self.__post_backup(domain)
+            self._post_backup(domain)
 
 
 class LibvirtBackupExternalSnapshot(LibvirtBackup):
@@ -127,17 +127,17 @@ class LibvirtBackupExternalSnapshot(LibvirtBackup):
         super(LibvirtBackupExternalSnapshot, self).__init__(*args, **kwargs)
         self.snap_dir = snap_dir
 
-    def __set_backup_dest(self):
+    def _set_backup_dest(self):
         super(LibvirtBackupExternalSnapshot, self).__set_backup_dest()
         self.snap = "{0}/{1}".format(self.snap_dir, self.backup_date)
 
-    def __cleanup_old_backups(self):
+    def _cleanup_old_backups(self):
         super(LibvirtBackupExternalSnapshot, self).__cleanup_old_backups()
         if self.dest != self.snap:
             old_backups = ebt_cleaner.filter_list(path=self.snap_dir, dayexp=self.day_exp, store_last=self.store_last)
             ebt_system.rm(old_backups)
 
-    def __create_instance_backup(self, domain):
+    def _create_instance_backup(self, domain):
         log.info('Start backup domain {0}'.format(domain.name()))
         os.makedirs('{0}/{1}'.format(self.dest, domain.name()))
         if self.dest != self.snap:

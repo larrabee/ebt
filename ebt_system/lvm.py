@@ -1,4 +1,4 @@
-from ebt_system import popen
+from ebt_system import popen as _popen
 import os
 import sys
 import logging
@@ -16,7 +16,7 @@ def create_snapshot(source, size='10G', snap_suff='-snap'):
     snap_name = source + snap_suff
     command = 'lvcreate --size {0} -A y --snapshot --name {1} {2}'.format(size, snap_name, source)
     log.info('Create snapshot of {0} with name {1} and size {2}'.format(source, snap_name, size))
-    popen(command=command)
+    _popen(command=command)
 
 
 def remove_snap_if_exist(source, snap_suff='-snap'):
@@ -28,7 +28,7 @@ def remove_snap_if_exist(source, snap_suff='-snap'):
     if os.path.exists(snap_name):
         command = 'lvremove -A y {0} --force'.format(snap_name)
         log.info('Remove snapshot {0} of volume {1}'.format(snap_name, source))
-        popen(command=command)
+        _popen(command=command)
     else:
         log.info('Snapshot with name {0} not found. Skipping remove.'.format(snap_name))
 
@@ -41,4 +41,4 @@ def remove_snap(source, snap_suff='-snap'):
     snap_name = source + snap_suff
     command = 'lvremove -A y {0} --force'.format(snap_name)
     log.info('Remove snapshot {0} of volume {1}'.format(snap_name, source))
-    popen(command=command)
+    _popen(command=command)

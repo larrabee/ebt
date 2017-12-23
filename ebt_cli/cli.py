@@ -6,7 +6,7 @@ def ebt():
     from configobj import ConfigObj
     from validate import Validator
     import os
-    import ebt_cli.logging
+    import ebt_cli.log
     from ebt_cli.getfunctions import getfunctions
     from ebt_cli.__version__ import __version__
 
@@ -26,7 +26,7 @@ def ebt():
     plans = __import__(os.path.splitext(os.path.basename(cli.plan))[0])
 
     # Base logging
-    log_configurator = ebt_cli.logging.Configurator()
+    log_configurator = ebt_cli.log.Configurator()
     log = log_configurator.get_logger()
 
     # Config Parser

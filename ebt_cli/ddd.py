@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ebt_files import CreateDiff, RestoreDiff
+from ebt_files import ddd
 
 
 def ddd():
@@ -38,8 +38,8 @@ def ddd():
         offd = open(vars(cli)['of'], 'wb')
 
     if cli.mode == 'backup':
-        differ = CreateDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=cli.block_size)
+        differ = ddd.CreateDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=cli.block_size)
         differ.start()
     elif cli.mode == 'restore':
-        differ_restore = RestoreDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=cli.block_size)
+        differ_restore = ddd.RestoreDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=cli.block_size)
         differ_restore.start()

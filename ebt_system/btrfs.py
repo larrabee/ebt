@@ -1,6 +1,6 @@
 import logging
 import sys
-from ebt_system import popen
+from ebt_system import popen as _popen
 
 log = logging.getLogger('__main__')
 
@@ -9,7 +9,7 @@ def subvolume_list(path):
     assert isinstance(path, str), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('path', __name__, sys._getframe().f_code.co_name)
     command = 'btrfs subvolume list {0}'.format(str(path))
-    raw_output = popen(command)[0]
+    raw_output = _popen(command)[0]
     form_output = raw_output.decode()
     output = list()
     for string in form_output.split(sep='\n'):
@@ -24,12 +24,12 @@ def subvolume_delete(path):
         .format('path', __name__, sys._getframe().f_code.co_name)
     if type(path) is str:
         command = 'btrfs subvolume delete {0}'.format(path)
-        popen(command)
+        _popen(command)
         log.info('Delete btrfs subvolume {0}'.format(path))
     else:
         for subvolume in path:
             command = 'btrfs subvolume delete {0}'.format(subvolume)
-            popen(command)
+            _popen(command)
             log.info('Delete btrfs subvolume {0}'.format(subvolume))
 
 def subvolume_create_snapshot(source, dest, readonly=True):
@@ -42,8 +42,8 @@ def subvolume_create_snapshot(source, dest, readonly=True):
     command = 'btrfs subvolume snapshot'
     if readonly:
         command = '{0} -r'.format(command)
-    command = '{0} "{1}" "{2}"'.format(command, source, dest)
-    popen(command)
+    command = "{0} {1} {2}".format(command, source, dest)
+    _popen(command)
     log.info('Create snapshot of {0} to {1} , readonly: {2}'.format(source, dest, str(readonly)))
 
 
@@ -53,7 +53,7 @@ def file_create_snapshot(source, dest):
     assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('dest', __name__, sys._getframe().f_code.co_name)
     command = 'cp --reflink {0} {1}'.format(source, dest)
-    popen(command)
+    _popen(command)
     log.info('Create snapshot of file {0} to {1}'.format(source, dest))
 
 
@@ -66,13 +66,14 @@ def subvolume_send(source, dest, parent_path=None, compress_level=0):
         '{1}.{2}: variable "{0}" has wrong type.'.format('compress', __name__, sys._getframe().f_code.co_name)
     assert isinstance(parent_path, str) or (parent_path is None), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('parent_path', __name__, sys._getframe().f_code.co_name)
-    command = 'btrfs send {0}'.format(source)
     if parent_path is not None:
-        command = '{0} -p {1}'.format(command, parent_path)
+        command = 'btrfs send -p {0} {1}'.format(parent_path, source)
+    else:
+        command = 'btrfs send {0}'.format(source)
     if compress_level > 0:
         command = "{0} |pigz -c -{1}".format(command, compress_level)
-    command += "{0} > {1}".format(command, dest)
-    popen(command, shell=True)
+    command = "{0} > {1}".format(command, dest)
+    _popen(command, shell=True)
     log.info('Send subvolume {0} to {1} , parrent: {2}'.format(source, dest, str(parent_path)))
 
 

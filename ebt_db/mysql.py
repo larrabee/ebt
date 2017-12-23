@@ -1,12 +1,13 @@
 import logging
 import MySQLdb
-from ebt_system import popen
+from ebt_system import popen as _popen
 
 
 class Mysql:
     def __init__(self, params):
         self.log = logging.getLogger('__main__')
         self.params = params
+
 
     def exec_command(self, sql_command):
         if 'unix_socket' in self.params:
@@ -63,7 +64,7 @@ class Mysql:
             else:
                 command += ' > {0}/{1}.sql'.format(self.params['dest'], database)
             self.log.debug('Mysql dump command: {0}'.format(command))
-            popen(command=command, shell=True)
+            _popen(command=command, shell=True)
 
     def innobackupex(self):
         command = 'innobackupex'
@@ -80,4 +81,4 @@ class Mysql:
             command += ' --databases {0}'.format(' '.join(self.params['db']))
         command += ' {0}'.format(self.params['dest'])
         self.log.debug('Innobackupex command: {0}'.format(command))
-        popen(command=command, shell=True)
+        _popen(command=command, shell=True)

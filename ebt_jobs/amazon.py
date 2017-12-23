@@ -14,7 +14,7 @@ class CleanUpGlacier(object):
                                         aws_secret_access_key=aws_secret_access_key,
                                         region_name=region_name)
 
-    def __check_archive_expiration(self, archive):
+    def _check_archive_expiration(self, archive):
         archive_id = archive['ArchiveId']
         creation_date = datetime.strptime(archive['CreationDate'], "%Y-%m-%dT%H:%M:%SZ")
         description = archive['ArchiveDescription']
@@ -35,6 +35,6 @@ class CleanUpGlacier(object):
         log.info('Cleanup vault "{0}"'.format(self.vault))
         inventory = self.glacier.get_inventory(self.vault)
         for archive in inventory['ArchiveList']:
-            if self.__check_archive_expiration(archive) is True:
+            if self._check_archive_expiration(archive) is True:
                 self.glacier.delete_archive(vault_name=self.vault, archive=archive['ArchiveId'])
 
