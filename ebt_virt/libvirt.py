@@ -5,7 +5,7 @@ import time
 import ebt_system
 
 
-class Libvirt:
+class Libvirt(object):
     def __init__(self, uri='qemu:///system'):
         self.conn = libvirt.open(uri)
         self.include = list()

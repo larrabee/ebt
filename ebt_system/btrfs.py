@@ -57,7 +57,7 @@ def file_create_snapshot(source, dest):
     log.info('Create snapshot of file {0} to {1}'.format(source, dest))
 
 
-def subvolume_send(source, dest, parent_path=None, compress_level=None):
+def subvolume_send(source, dest, parent_path=None, compress_level=0):
     assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('source', __name__, sys._getframe().f_code.co_name)
     assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.' \
@@ -69,7 +69,7 @@ def subvolume_send(source, dest, parent_path=None, compress_level=None):
     command = 'btrfs send {0}'.format(source)
     if parent_path is not None:
         command = '{0} -p {1}'.format(command, parent_path)
-    if compress_level is not None:
+    if compress_level > 0:
         command = "{0} |pigz -c -{1}".format(command, compress_level)
     command += "{0} > {1}".format(command, dest)
     popen(command, shell=True)

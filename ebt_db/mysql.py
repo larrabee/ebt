@@ -8,7 +8,6 @@ class Mysql:
         self.log = logging.getLogger('__main__')
         self.params = params
 
-
     def exec_command(self, sql_command):
         if 'unix_socket' in self.params:
             if self.params['passwd'] is None:

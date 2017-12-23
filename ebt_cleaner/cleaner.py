@@ -62,3 +62,11 @@ def filter_list(path, fmt='%date', dayexp=None, store_last=None):
 def last_backup(path, fmt='%date'):
     backup = filter_list(path=path, fmt=fmt)
     return backup[0]
+
+
+def get_dir_name(fdate=None):
+    if fdate is None:
+        name = datetime.now().strftime('%d-%m-%Y_%H:%M')
+    else:
+        name = '{0}%{1}'.format(fdate, datetime.now().strftime('%d-%m-%Y_%H:%M'))
+    return name
