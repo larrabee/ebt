@@ -1,5 +1,5 @@
 
-def ebt():
+def ebt_cli():
     import argparse
     import sys
     import traceback
@@ -89,7 +89,7 @@ def ebt():
         log.info('-' * 30 + 'Job "{0}" started'.format(job) + '-' * 30)
         try:
             plan = 'plans.' + job + '()'
-            exec(plan)
+            exec plan
         except AssertionError as e:
             log.error('Assertion Error: {0}'.format(e))
             _, _, tb = sys.exc_info()

@@ -2,7 +2,7 @@
 from ebt_files import ddd
 
 
-def ddd():
+def ddd_cli():
     import sys
     import argparse
 

@@ -1,6 +1,7 @@
 import logging
 import MySQLdb
 from ebt_system import popen as _popen
+from multiprocessing import cpu_count
 
 
 class Mysql:
@@ -60,14 +61,15 @@ class Mysql:
                 command += ' -p{0}'.format(self.params['passwd'])
             command += ' -u{0} {1} {2}'.format(self.params['user'], self.params['dump_args'], database)
             if self.params['compress_level'] > 0:
-                command += ' |pigz -c -{2} > {0}/{1}.sql.gz'.format(self.params['dest'], database, self.params['compress_level'])
+                compress_threads = self.params['compress-threads'] if ('compress-threads' in self.params) else cpu_count()
+                command += ' |pigz -c -{2} -p {3} > {0}/{1}.sql.gz'.format(self.params['dest'], database, self.params['compress_level'], compress_threads)
             else:
                 command += ' > {0}/{1}.sql'.format(self.params['dest'], database)
             self.log.debug('Mysql dump command: {0}'.format(command))
             _popen(command=command, shell=True)
 
     def innobackupex(self):
-        command = 'innobackupex'
+        command = 'innobackupex --no-timestamp'
         if 'unix_socket' in self.params:
             command += ' -S{0}'.format(self.params['unix_socket'])
         else:

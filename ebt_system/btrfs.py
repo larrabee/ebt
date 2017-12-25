@@ -1,6 +1,7 @@
 import logging
 import sys
 from ebt_system import popen as _popen
+from multiprocessing import cpu_count
 
 log = logging.getLogger('__main__')
 
@@ -57,7 +58,7 @@ def file_create_snapshot(source, dest):
     log.info('Create snapshot of file {0} to {1}'.format(source, dest))
 
 
-def subvolume_send(source, dest, parent_path=None, compress_level=0):
+def subvolume_send(source, dest, parent_path=None, compress_level=0, compress_threads=cpu_count()):
     assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('source', __name__, sys._getframe().f_code.co_name)
     assert isinstance(dest, str), '{1}.{2}: variable "{0}" has wrong type.' \
@@ -71,7 +72,7 @@ def subvolume_send(source, dest, parent_path=None, compress_level=0):
     else:
         command = 'btrfs send {0}'.format(source)
     if compress_level > 0:
-        command = "{0} |pigz -c -{1}".format(command, compress_level)
+        command = "{0} |pigz -c -{1} -p {2}".format(command, compress_level, compress_threads)
     command = "{0} > {1}".format(command, dest)
     _popen(command, shell=True)
     log.info('Send subvolume {0} to {1} , parrent: {2}'.format(source, dest, str(parent_path)))

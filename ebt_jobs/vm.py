@@ -98,7 +98,6 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         self.archive_pass = archive_pass
         self.vault = vault
 
-    # noinspection PyMethodOverriding
     def _post_backup(self, domain):
         log.info('Compressing "{0}/{1}" to "{0}/{1}.7z"'.format(self.dest, domain.name()))
         ebt_files.archive.create7z(source="{0}/{1}".format(self.dest, domain.name()),
@@ -128,11 +127,11 @@ class LibvirtBackupExternalSnapshot(LibvirtBackup):
         self.snap_dir = snap_dir
 
     def _set_backup_dest(self):
-        super(LibvirtBackupExternalSnapshot, self).__set_backup_dest()
+        super(LibvirtBackupExternalSnapshot, self)._set_backup_dest()
         self.snap = "{0}/{1}".format(self.snap_dir, self.backup_date)
 
     def _cleanup_old_backups(self):
-        super(LibvirtBackupExternalSnapshot, self).__cleanup_old_backups()
+        super(LibvirtBackupExternalSnapshot, self)._cleanup_old_backups()
         if self.dest != self.snap:
             old_backups = ebt_cleaner.filter_list(path=self.snap_dir, dayexp=self.day_exp, store_last=self.store_last)
             ebt_system.rm(old_backups)
