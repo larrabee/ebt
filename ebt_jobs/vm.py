@@ -178,8 +178,7 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         self.archive_pass = archive_pass
         self.vault = vault
 
-    # noinspection PyMethodOverriding
-    def _post_backup(self, domain):
+    def _upload_to_glacier(self, domain):
         log.info('Compressing "{0}/{1}" to "{0}/{1}.7z"'.format(self.dest, domain.name()))
         ebt_files.archive.create7z(source="{0}/{1}".format(self.dest, domain.name()),
                                    dest="{0}/{1}.7z".format(self.dest, domain.name()), password=self.archive_pass,
@@ -199,7 +198,8 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         for domain in domains:
             self._create_instance_backup(domain)
         for domain in domains:
-            self._post_backup(domain)
+            self._upload_to_glacier(domain)
+        self._post_backup()
 
 
 class LibvirtBackupExternalSnapshot(LibvirtBackup):
