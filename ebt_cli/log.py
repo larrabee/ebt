@@ -8,8 +8,8 @@ class BufferingSMTPHandler(logging.handlers.SMTPHandler):
     def __init__(self, mailhost, fromaddr, toaddrs, subject, credentials=None,
                  secure=None, capacity=1024 * 1000):
         logging.handlers.SMTPHandler.__init__(self, mailhost, fromaddr,
-                                          toaddrs, subject,
-                                          credentials, secure)
+                                              toaddrs, subject,
+                                              credentials, secure)
 
         self.capacity = capacity
         self.buffer = list()
@@ -35,10 +35,10 @@ class BufferingSMTPHandler(logging.handlers.SMTPHandler):
                 port = smtplib.SMTP_PORT
             smtp = smtplib.SMTP(self.mailhost, port)
             msg = "From: {0}\nTo: {1}\nSubject: {2}\nDate: {3}\n\n".format(
-                            self.fromaddr,
-                            ",".join(self.toaddrs),
-                            self.getSubject(self.buffer[0]),
-                            formatdate())
+                self.fromaddr,
+                ",".join(self.toaddrs),
+                self.getSubject(self.buffer[0]),
+                formatdate())
             for record in self.buffer:
                 msg = msg + self.format(record) + "\r\n"
 

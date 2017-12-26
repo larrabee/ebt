@@ -20,6 +20,7 @@ def subvolume_list(path):
             output.append(output_element)
     return output
 
+
 def subvolume_delete(path):
     assert isinstance(path, str) or isinstance(path, list), '{1}.{2}: variable "{0}" has wrong type.' \
         .format('path', __name__, sys._getframe().f_code.co_name)
@@ -32,6 +33,7 @@ def subvolume_delete(path):
             command = 'btrfs subvolume delete {0}'.format(subvolume)
             _popen(command)
             log.info('Delete btrfs subvolume {0}'.format(subvolume))
+
 
 def subvolume_create_snapshot(source, dest, readonly=True):
     assert isinstance(source, str), '{1}.{2}: variable "{0}" has wrong type.' \

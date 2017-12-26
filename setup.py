@@ -82,7 +82,7 @@ setup(
     # have to be included in MANIFEST.in as well.
     package_data={
         # If any package contains *.txt or *.rst files, include them:
-        '': ['*.spec',],
+        '': ['*.spec', ],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
