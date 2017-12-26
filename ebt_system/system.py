@@ -40,7 +40,7 @@ def rm(path):
             shutil.rmtree(path)
             log.info('Remove directory: {0}'.format(path))
         elif os.path.isfile(path):
-            os.remove(path)
+            os.remove(  path)
             log.info('Remove file: {0}'.format(path))
     else:
         for item in path:

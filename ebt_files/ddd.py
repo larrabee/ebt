@@ -4,9 +4,8 @@ import struct
 
 
 class CreateDiff:
-    def __init__(self, iffd, dffd, offd, block_size=8192, block_counter_size_bytes=64):
+    def __init__(self, iffd, dffd, offd, block_size=8192):
         self.block_size = block_size
-        self.block_counter_size_bytes = block_counter_size_bytes
         self.iffd = iffd
         self.dffd = dffd
         self.offd = offd
@@ -27,15 +26,6 @@ class CreateDiff:
         self.offd.write(block_number_bytes)
         self.offd.write(data)
 
-    @staticmethod
-    def __compare_data(ifdata, dfdata):
-        if dfdata is None:
-            return None
-        elif ifdata != dfdata:
-            return dfdata
-        else:
-            return ifdata
-
     # Reserved header for further use
     def __write_header(self, header_string):
         data = struct.pack('@32768s', header_string.encode())
@@ -53,12 +43,14 @@ class CreateDiff:
                 dfdata = next(self.dfgen)
             except StopIteration:
                 dfdata = None
-            data = self.__compare_data(ifdata, dfdata)
-            if data is None:
+            if dfdata is None:
                 self.__write_file(block_counter, bytes())
                 break
+            elif ifdata == dfdata:
+                block_counter += 1
+                continue
             else:
-                self.__write_file(block_counter, data)
+                self.__write_file(block_counter, dfdata)
                 block_counter += 1
 
 
@@ -92,19 +84,20 @@ class RestoreDiff:
     def start(self):
         block_counter = 0
         dfdata = next(self.dfgen)
+        dfdata_block_number = struct.unpack('@Q', dfdata[0:8])[0]
+        dfdata_data = dfdata[8:]
         while True:
             try:
                 ifdata = next(self.ifgen)
             except StopIteration:
                 ifdata = None
-            dfdata_block_number = struct.unpack('@Q', dfdata[0:8])[0]
-            dfdata = dfdata[8:]
-
-            if (len(dfdata) == 0) and (dfdata_block_number == block_counter):
+            if (len(dfdata_data) == 0) and (dfdata_block_number == block_counter):
                 break
             elif dfdata_block_number == block_counter:
-                data = dfdata
+                data = dfdata_data
                 dfdata = next(self.dfgen)
+                dfdata_block_number = struct.unpack('@Q', dfdata[0:8])[0]
+                dfdata_data = dfdata[8:]
             else:
                 data = ifdata
             self.__write_file(data)

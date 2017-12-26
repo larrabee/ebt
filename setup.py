@@ -6,6 +6,8 @@ https://github.com/pypa/sampleproject
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
+from shutil import copyfile
+import os
 # To use a consistent encoding
 from os import path
 import ebt_cli.__version__
@@ -67,7 +69,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=["configobj", "boto==2.*", "MySQL-python"],
+    install_requires=["configobj", "boto>=2,<3", "MySQL-python"],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -87,10 +89,6 @@ setup(
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[
-        ('/etc/ebt', ['ebt.conf']),
-        ('/etc/ebt', ['plans.py']),
-    ],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
@@ -102,3 +100,15 @@ setup(
         ],
     },
 )
+
+config_dir = '/etc/ebt/'
+config_files = [
+                   (config_dir, 'ebt.conf'),
+                   (config_dir, 'plans.py'),
+               ]
+
+for config in config_files:
+    if not path.exists(config[0]):
+        os.makedirs(config[0])
+    if not path.exists(path.join(config[0], config[1])):
+        copyfile(config[1], path.join(config[0], config[1]))
