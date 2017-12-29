@@ -38,11 +38,22 @@ class Amazon:
         vault = self.glacier_client.get_vault(vault_name)
         inventory_job_id = vault.retrieve_inventory()
         job = vault.get_job(inventory_job_id)
-        while job.status_code == 'InProgress':
+        while not job.completed:
             job = vault.get_job(inventory_job_id)
             time.sleep(sleep_interval)
         inventory = job.get_output()
         return inventory
+
+    def download_file(self, vault_name, archive_id, dest, sleep_interval=1200):
+        vault = self.glacier_client.get_vault(vault_name)
+        job = vault.retrieve_archive(archive_id)
+        job_id = job.id
+        while not job.completed:
+            job = vault.get_job(job_id)
+            time.sleep(sleep_interval)
+        download_result = job.download_to_file(dest)
+        return download_result
+
 
     def delete_archive(self, vault_name, archive):
         vault = self.glacier_client.get_vault(vault_name)
