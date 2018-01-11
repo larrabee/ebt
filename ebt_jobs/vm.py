@@ -6,6 +6,7 @@ import ebt_virt
 import ebt_cloud
 import os
 import gzip
+from multiprocessing import cpu_count
 
 log = logging.getLogger('__main__')
 
@@ -21,6 +22,9 @@ class LibvirtBackup(object):
         self.libvirt_client = ebt_virt.Libvirt()
         self.libvirt_client.exclude = exclude_vm
         self.libvirt_client.include = include_vm
+        self.compress_level = 5
+        self.lvm_snap_size = '10G'
+        self.compress_threads = cpu_count()
 
     def _set_backup_dest(self):
         self.backup_date = ebt_cleaner.get_dir_name()
@@ -52,15 +56,16 @@ class LibvirtBackup(object):
             if (disk['source_type'] == 'dev') and (disk['path'] not in self.exclude_disks):
                 log.info('Create snapshot of disk {0}'.format(disk['path']))
                 ebt_system.lvm.remove_snap_if_exist(source=disk['path'])
-                ebt_system.lvm.create_snapshot(source=disk['path'])
+                ebt_system.lvm.create_snapshot(source=disk['path'], size=self.lvm_snap_size)
             elif (disk['source_type'] == 'file') and (disk['path'] not in self.exclude_disks):
                 log.info(
                     'Create copy of disk {3} to {0}/{1}/{2}'.format(self.dest, domain.name(),
                                                                     os.path.basename(disk['path']),
                                                                     disk['path']))
-                ebt_files.rsync.full_copy(source=disk['path'],
-                                          dest='{0}/{1}/{2}'.format(self.dest, domain.name(),
-                                                                    os.path.basename(disk['path'])))
+                ebt_files.dd.create(source=disk['path'], dest='{0}/{1}/{2}.img.gz'.format(self.dest, domain.name(),
+                                                                                          os.path.basename(
+                                                                                              disk['path'])),
+                                    compress_level=self.compress_level, compress_threads=self.compress_threads)
         if (self.dump_memory is True) and (domain.isActive() == 0) and (
                     os.path.isfile("{0}/{1}/memory.save".format(self.dest, domain.name())) is True):
             log.info('Restore memory from file {0}/{1}/memory.save'.format(self.dest, domain.name()))
@@ -76,7 +81,7 @@ class LibvirtBackup(object):
                 ebt_files.dd.create(source='{0}-snap'.format(disk['path']),
                                     dest='{0}/{1}/{2}.img.gz'.format(self.dest, domain.name(),
                                                                      os.path.basename(disk['path'])),
-                                    compress_level=6)
+                                    compress_level=self.compress_level, compress_threads=self.compress_threads)
                 open('{0}/{1}/{2}.img.size'.format(self.dest, domain.name(), os.path.basename(disk['path'])),
                      mode='w').write(
                     str(self.libvirt_client.device_size(domain, disk['target'])))
@@ -120,19 +125,16 @@ class LibvirtBackupDiff(LibvirtBackup):
             if (disk['source_type'] == 'dev') and (disk['path'] not in self.exclude_disks):
                 log.info('Create snapshot of disk {0}'.format(disk['path']))
                 ebt_system.lvm.remove_snap_if_exist(source=disk['path'])
-                ebt_system.lvm.create_snapshot(source=disk['path'])
+                ebt_system.lvm.create_snapshot(source=disk['path'], size=self.lvm_snap_size)
             elif (disk['source_type'] == 'file') and (disk['path'] not in self.exclude_disks):
                 log.info(
                     'Create copy of disk {3} to {0}/{1}/{2}'.format(self.dest, domain.name(),
                                                                     os.path.basename(disk['path']),
                                                                     disk['path']))
-                ebt_files.rsync.full_copy(source=disk['path'],
-                                          dest='{0}/{1}/{2}'.format(self.dest, domain.name(),
-                                                                    os.path.basename(disk['path'])))
-                iffd = open('{0}/{1}/{2}'.format(self.full, domain.name(), os.path.basename(disk['path'])), 'rb')
+                iffd = gzip.open('{0}/{1}/{2}.img.gz'.format(self.full, domain.name(), os.path.basename(disk['path'])), 'rb')
                 dffd = open(disk['path'], 'rb')
-                offd = open('{0}/{1}/{2}.img.ddd'.format(self.dest, domain.name(), os.path.basename(disk['path'])),
-                            'wb')
+                offd = gzip.open('{0}/{1}/{2}.img.ddd.gz'.format(self.dest, domain.name(), os.path.basename(disk['path'])),
+                            'wb', compresslevel=self.compress_level)
                 differ = ebt_files.ddd.CreateDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=8192)
                 differ.start()
                 iffd.close()
@@ -156,7 +158,7 @@ class LibvirtBackupDiff(LibvirtBackup):
                 dffd = open('{0}-snap'.format(disk['path']), 'rb')
                 offd = gzip.open(
                     '{0}/{1}/{2}.img.ddd.gz'.format(self.dest, domain.name(), os.path.basename(disk['path'])), 'wb',
-                    compresslevel=5)
+                    compresslevel=self.compress_level)
                 differ = ebt_files.ddd.CreateDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=8192)
                 differ.start()
                 iffd.close()
@@ -243,7 +245,7 @@ class LibvirtBackupExternalSnapshot(LibvirtBackup):
                 ebt_files.dd.create(source=disk['path'], dest='{0}/{1}/{2}.img.gz'.format(self.dest, domain.name(),
                                                                                           os.path.basename(
                                                                                               disk['path'])),
-                                    compress_level=6)
+                                    compress_level=self.compress_level, compress_threads=self.compress_threads)
                 open('{0}/{1}/{2}.img.size'.format(self.dest, domain.name(), os.path.basename(disk['path'])),
                      mode='w').write(
                     str(self.libvirt_client.device_size(domain, disk['target'])))
@@ -295,7 +297,7 @@ class LibvirtBackupExternalSnapshotDiff(LibvirtBackupDiff):
                 dffd = open(disk['path'], 'rb')
                 offd = gzip.open(
                     '{0}/{1}/{2}.img.ddd.gz'.format(self.dest, domain.name(), os.path.basename(disk['path'])), 'wb',
-                    compresslevel=5)
+                    compresslevel=self.compress_level)
                 differ = ebt_files.ddd.CreateDiff(iffd=iffd, dffd=dffd, offd=offd, block_size=8192)
                 differ.start()
                 iffd.close()
