@@ -99,20 +99,20 @@ You can use for restoring diff backups of Libvirt VM's or for creating diff back
 
 Backup examples:
 ```
-diff-dd --if /backup/full_disk_copy.raw --df /dev/lvm/changed_disk_snapshot --of /backup/diff_disk_copy.ddd
-diff-dd --if /backup/full_disk_copy.raw --df /dev/lvm/changed_disk_snapshot > /backup/diff_disk_copy.ddd
-diff-dd --if /backup/full_disk_copy.raw --df /dev/lvm/changed_disk_snapshot | gzip > /backup/diff_disk_copy.ddd.gz
-diff-dd --if <(zcat /backup/full_disk_copy.raw.gz) --df /dev/lvm/changed_disk_snapshot --of /backup/diff_disk_copy.ddd
+ddd --if /backup/full_disk_copy.raw --df /dev/lvm/changed_disk_snapshot --of /backup/diff_disk_copy.ddd
+ddd --if /backup/full_disk_copy.raw --df /dev/lvm/changed_disk_snapshot > /backup/diff_disk_copy.ddd
+ddd --if /backup/full_disk_copy.raw --df /dev/lvm/changed_disk_snapshot | gzip > /backup/diff_disk_copy.ddd.gz
+ddd --if <(zcat /backup/full_disk_copy.raw.gz) --df /dev/lvm/changed_disk_snapshot --of /backup/diff_disk_copy.ddd
 zcat /backup/full_disk_copy.raw.gz | ddd --df /dev/lvm/changed_disk_snapshot --of /backup/diff_disk_copy.ddd
-cat /dev/lvm/changed_disk_snapshot | diff-dd --if <(zcat /backup/full_disk_copy.raw.gz) --of /backup/diff_disk_copy.ddd
-diff-dd --if <(ssh remotehost cat /backup/full_disk_copy.raw) --df <(ssh remote2host cat /dev/lvm/changed_disk_snapshot) | ssh remote3host dd of=/backup/diff_disk_copy.ddd
+cat /dev/lvm/changed_disk_snapshot | ddd --if <(zcat /backup/full_disk_copy.raw.gz) --of /backup/diff_disk_copy.ddd
+ddd --if <(ssh remotehost cat /backup/full_disk_copy.raw) --df <(ssh remote2host cat /dev/lvm/changed_disk_snapshot) | ssh remote3host dd of=/backup/diff_disk_copy.ddd
 ```
 
 Restore examples:
 ```
-diff-dd --mode restore --if /backup/full_disk_copy.raw --df /backup/diff_disk_copy.ddd --of /dev/lvm/disk
-diff-dd --mode restore --if <(zcat /backup/full_disk_copy.raw.gz) --df <(zcat /backup/diff_disk_copy.ddd.gz) > /dev/lvm/disk
-zcat /backup/full_disk_copy.raw.gz | diff-dd --mode restore --df <(ssh remotehost cat /backup/diff_disk_copy.ddd.gz) | ssh remote2host dd of=/dev/lvm/disk
+ddd --mode restore --if /backup/full_disk_copy.raw --df /backup/diff_disk_copy.ddd --of /dev/lvm/disk
+ddd --mode restore --if <(zcat /backup/full_disk_copy.raw.gz) --df <(zcat /backup/diff_disk_copy.ddd.gz) > /dev/lvm/disk
+zcat /backup/full_disk_copy.raw.gz | ddd --mode restore --df <(ssh remotehost cat /backup/diff_disk_copy.ddd.gz) | ssh remote2host dd of=/dev/lvm/disk
 ```
 
 ## Diff-dd API Usage

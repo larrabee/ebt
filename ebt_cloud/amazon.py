@@ -15,7 +15,8 @@ class Amazon:
             vault = self.glacier_client.get_vault(vault_name)
         else:
             vault = self.create_vault(vault_name)
-        archive_id = self.__upload_file(vault=vault, description=description, path=path)
+        archive_id = vault.concurrent_create_archive_from_file(path, description, part_size=4194304)
+        self.log.debug('File "{0}" upload successful. Archive id: "{1}"'.format(path, archive_id))
         return archive_id
 
     def create_vault(self, vault_name):
@@ -29,18 +30,13 @@ class Amazon:
         else:
             return False
 
-    def __upload_file(self, vault, description, path):
-        archive_id = vault.concurrent_create_archive_from_file(path, description, part_size=4194304)
-        self.log.debug('File "{0}" upload successful. Archive id: "{1}"'.format(path, archive_id))
-        return archive_id
-
     def get_inventory(self, vault_name, sleep_interval=1200):
         vault = self.glacier_client.get_vault(vault_name)
         inventory_job_id = vault.retrieve_inventory()
         job = vault.get_job(inventory_job_id)
         while not job.completed:
-            job = vault.get_job(inventory_job_id)
             time.sleep(sleep_interval)
+            job = vault.get_job(inventory_job_id)
         inventory = job.get_output()
         return inventory
 
@@ -49,16 +45,12 @@ class Amazon:
         job = vault.retrieve_archive(archive_id)
         job_id = job.id
         while not job.completed:
-            job = vault.get_job(job_id)
             time.sleep(sleep_interval)
+            job = vault.get_job(job_id)
         download_result = job.download_to_file(dest)
         return download_result
 
-
-    def delete_archive(self, vault_name, archive):
+    def delete_archive(self, vault_name, archive_id):
         vault = self.glacier_client.get_vault(vault_name)
-        self.__delete_archive(vault, archive)
-
-    def __delete_archive(self, vault, archive_id):
         vault.delete_archive(archive_id)
         self.log.debug('Successfuly remove archive "{0}" from vault "{1}"'.format(archive_id, vault.name))

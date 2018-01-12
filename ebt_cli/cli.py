@@ -1,4 +1,3 @@
-
 def ebt_cli():
     import argparse
     import sys
@@ -7,8 +6,10 @@ def ebt_cli():
     from validate import Validator
     import os
     import ebt_cli.log
-    from ebt_cli.getfunctions import getfunctions
+    import inspect
     from ebt_cli.__version__ import __version__
+
+    getfunctions = lambda func: [x[0] for x in inspect.getmembers(func, inspect.isfunction)]
 
     # Base vars
     config_spec_filename = os.path.dirname(os.path.realpath(__file__)) + '/ebt.spec'
@@ -18,10 +19,11 @@ def ebt_cli():
     cli_parser.add_argument('-j', '--jobs', nargs='+', help='List of jobs to run')
     cli_parser.add_argument('-p', '--plan', default='/etc/ebt/plans.py', type=str, help='Custom path to plans file')
     cli_parser.add_argument('-c', '--config', default='/etc/ebt/ebt.conf', type=str, help='Custom path to config file')
-    cli_parser.add_argument('-v', '--version', default=False, action='store_true', help='Display program version and exit')
+    cli_parser.add_argument('-v', '--version', default=False, action='store_true',
+                            help='Display program version and exit')
     cli = cli_parser.parse_args()
 
-    #Import plans file
+    # Import plans file
     sys.path.append(os.path.dirname(cli.plan))
     plans = __import__(os.path.splitext(os.path.basename(cli.plan))[0])
 
@@ -37,12 +39,7 @@ def ebt_cli():
         log.critical('Config validation failed.')
         log.debug('Validation result: {0}'.format(result))
         exit(1)
-
-    try:
-        config = cfg_parser['Config']
-    except KeyError:
-        log.critical('"Config" section not found in configuration file: "{0}"'.format(cli.config))
-        exit(1)
+    config = cfg_parser['Config']
 
     if cli.version:
         print('Version: {0}'.format(__version__))
@@ -75,7 +72,8 @@ def ebt_cli():
             log_configurator.add_smtp_handler(fromaddr=mail_config['from'],
                                               mailhost=(mail_config['server'], mail_config['port']),
                                               toaddrs=mail_config['recipients'], subject=mail_config['subject'],
-                                              credentials=(mail_config['login'], mail_config['password']), secure=secure)
+                                              credentials=(mail_config['login'], mail_config['password']),
+                                              secure=secure)
         except Exception:
             log.error('Cannot add SMTP handler')
 
@@ -88,8 +86,8 @@ def ebt_cli():
             break
         log.info('-' * 30 + 'Job "{0}" started'.format(job) + '-' * 30)
         try:
-            plan = 'plans.' + job + '()'
-            exec(plan)
+            plan = getattr(plans, job)
+            plan()
         except AssertionError as e:
             log.error('Assertion Error: {0}'.format(e))
             _, _, tb = sys.exc_info()

@@ -95,7 +95,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'diff-dd=ebt_cli:ddd_cli',
+            'ddd=ebt_cli:ddd_cli',
             'ebt=ebt_cli:ebt_cli',
         ],
     },

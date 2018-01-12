@@ -37,7 +37,7 @@ class CleanUpGlacier(object):
         inventory = self.glacier.get_inventory(self.vault)
         for archive in inventory['ArchiveList']:
             if self._check_archive_expiration(archive) is True:
-                self.glacier.delete_archive(vault_name=self.vault, archive=archive['ArchiveId'])
+                self.glacier.delete_archive(vault_name=self.vault, archive_id=archive['ArchiveId'])
 
 
 class RetrieveArchive(object):
@@ -48,8 +48,11 @@ class RetrieveArchive(object):
                                         aws_secret_access_key=aws_secret_access_key,
                                         region_name=region_name)
 
-    def get_file(self, archive_id):
-        dest = os.path.join(self.dest_dir, archive_id)
+    def get_file(self, archive_id, filename=None):
+        if filename in None:
+            dest = os.path.join(self.dest_dir, archive_id)
+        else:
+            dest = os.path.join(self.dest_dir, filename)
         log.info("Download archive {0} to {1}".format(archive_id, dest))
         self.glacier.download_file(self.vault, archive_id, dest)
 
