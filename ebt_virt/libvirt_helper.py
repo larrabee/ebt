@@ -8,8 +8,6 @@ import ebt_system
 class Libvirt(object):
     def __init__(self, uri='qemu:///system'):
         self.conn = libvirt.open(uri)
-        self.include = list()
-        self.exclude = list()
 
     def list_domains(self):
         return self.conn.listAllDomains()
@@ -39,17 +37,17 @@ class Libvirt(object):
                     disks_list.append(disk_info)
         return disks_list
 
-    def filter_domain_list(self, domains):
-        assert isinstance(self.include, list), '{1}.{2}: variable "{0}" has wrong type.' \
+    def filter_domain_list(self, domains, include=list(), exclude=list()):
+        assert isinstance(include, list), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('include', __name__, sys._getframe().f_code.co_name)
-        assert isinstance(self.exclude, list), '{1}.{2}: variable "{0}" has wrong type.' \
+        assert isinstance(exclude, list), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('exclude', __name__, sys._getframe().f_code.co_name)
         assert isinstance(domains, list) and isinstance(domains[0],
                                                         libvirt.virDomain), '{1}.{2}: variable "{0}" has wrong type.' \
             .format('domains', __name__, sys._getframe().f_code.co_name)
         filtered_list = list()
         for domain in domains:
-            if (domain.name() in self.include) or (('all' not in self.exclude) and (domain.name() not in self.exclude)):
+            if (domain.name() in include) or (('all' not in exclude) and (domain.name() not in exclude)):
                 filtered_list.append(domain)
         return filtered_list
 

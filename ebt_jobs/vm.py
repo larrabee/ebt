@@ -20,8 +20,8 @@ class LibvirtBackup(object):
         self.dest_dir = dest_dir
         self.day_exp = day_exp
         self.libvirt_client = ebt_virt.Libvirt()
-        self.libvirt_client.exclude = exclude_vm
-        self.libvirt_client.include = include_vm
+        self.exclude_vm = exclude_vm
+        self.include_vm = include_vm
         self.compress_level = 5
         self.lvm_snap_size = '10G'
         self.compress_threads = cpu_count()
@@ -92,7 +92,7 @@ class LibvirtBackup(object):
         self._set_backup_dest()
         self._cleanup_old_backups()
         self._pre_backup()
-        domains = self.libvirt_client.filter_domain_list(self.libvirt_client.list_domains())
+        domains = self.libvirt_client.filter_domain_list(self.libvirt_client.list_domains(), include=self.include_vm, exclude=self.exclude_vm)
         for domain in domains:
             self._create_instance_backup(domain)
         self._post_backup()
@@ -196,7 +196,7 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         self._set_backup_dest()
         self._cleanup_old_backups()
         self._pre_backup()
-        domains = self.libvirt_client.filter_domain_list(self.libvirt_client.list_domains())
+        domains = self.libvirt_client.filter_domain_list(self.libvirt_client.list_domains(), include=self.include_vm, exclude=self.exclude_vm)
         for domain in domains:
             self._create_instance_backup(domain)
         for domain in domains:

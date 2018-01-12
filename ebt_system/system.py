@@ -24,7 +24,7 @@ def popen(command, logging_commands=True, shell=False, executable='/bin/bash', c
     output = process.communicate()[0]
     log.debug('Exit code: {0}, output: {1}'.format(process.returncode, output))
     if process.returncode not in valid_exitcodes:
-        log.error('External program exit with not zero code.')
+        log.error('External program exit with invalid exit code.')
         if logging_commands:
             raise RuntimeError('Error code:', str(process.returncode), 'Output: ', output, 'Command: ', command)
         else:
