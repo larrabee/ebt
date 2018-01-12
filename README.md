@@ -26,8 +26,6 @@ MySQL-python
 Percona-Server-client-57 (or another mysql client like mariadb-client)
 percona-xtrabackup-24
 pigz
-python2-boto
-python-lxml
 python-pip
 ```
 2. Install python package from pip:

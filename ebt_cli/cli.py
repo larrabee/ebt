@@ -86,8 +86,7 @@ def ebt_cli():
             break
         log.info('-' * 30 + 'Job "{0}" started'.format(job) + '-' * 30)
         try:
-            plan = getattr(plans, job)
-            plan()
+            getattr(plans, job)()
         except AssertionError as e:
             log.error('Assertion Error: {0}'.format(e))
             _, _, tb = sys.exc_info()
