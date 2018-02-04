@@ -15,7 +15,7 @@ This is backup framework for creating flexible backup scripts.
 9. Predefined jobs for popular cases.
 
 ## Install
-1. Install following dependency with your OS package manager:   
+1. Install following dependency with your OS package manager:  
 For CentOS:
 ```
 http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm (Percona repo)
