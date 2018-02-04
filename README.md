@@ -16,18 +16,6 @@ This is backup framework for creating flexible backup scripts.
 
 ## Install
 1. Install following dependency with your OS package manager:
-```
-rsync
-lvm2
-p7zip
-btrfs-progs
-libvirt-python
-MySQL-python
-pigz
-python-pip
-Percona-Server-client-57
-percona-xtrabackup-24
-```
 For CentOS:
 ```
 http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm (Percona repo)
