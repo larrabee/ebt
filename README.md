@@ -23,10 +23,38 @@ p7zip
 btrfs-progs
 libvirt-python
 MySQL-python
-Percona-Server-client-57 (or another mysql client like mariadb-client)
-percona-xtrabackup-24
 pigz
 python-pip
+Percona-Server-client-57
+percona-xtrabackup-24
+```
+For CentOS:
+```
+http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm (Percona repo)
+libvirt-python
+python-pip
+rsync
+lvm2
+p7zip
+btrfs-progs
+libvirt-python
+pigz
+Percona-Server-client-57
+percona-xtrabackup-24
+```
+For Debian/Ubuntu:
+```
+https://repo.percona.com/apt/percona-release_0.1-4.$(lsb_release -sc)_all.deb (Percona repo)
+python-libvirt
+python-setuptools
+python-pip
+rsync
+lvm2
+p7zip
+btrfs-progs
+pigz
+Percona-Server-client-57
+percona-xtrabackup-24
 ```
 2. Install python package from pip:
 ```
