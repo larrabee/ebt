@@ -51,7 +51,7 @@ class S3BackupFull(object):
     def _create_backup(self):
         files = self.s3.list_bucket(self.bucket)
         files = self._exclude_files_by_regex(files)
-        self.s3.dump_files(files, workers=self.workers)
+        self.s3.dump_files(files, self.dest, workers=self.workers)
 
     def start(self):
         self._set_backup_dest()
@@ -83,4 +83,4 @@ class S3BackupDiff(S3BackupFull):
         files = self.s3.list_bucket(self.bucket)
         files = self._exclude_files_by_time(files)
         files = self._exclude_files_by_regex(files)
-        self.s3.dump_files(files, workers=self.workers)
+        self.s3.dump_files(files, self.dest, workers=self.workers)
