@@ -87,7 +87,7 @@ class S3(object):
         bucket = self._get_bucket_by_name(bucket_name)
         files = []
         for item in bucket.list():
-            item.last_modified_dt = datetime.datetime.strptime(item.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ')
+            item.last_modified_dt = datetime.datetime.strptime(item.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') - (datetime.datetime.utcnow() - datetime.datetime.now())
             if self._is_dir(item.name) is False:
                 files.append(item)
         return files

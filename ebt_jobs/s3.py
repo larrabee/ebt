@@ -46,11 +46,14 @@ class S3BackupFull(object):
                 if re.match(regex, file.name) is not None:
                     if file in filtered_files:
                         filtered_files.remove(file)
-        return  filtered_files
+        return filtered_files
 
     def _create_backup(self):
+        log.info('Starting backup bucket "{0}"'.format(self.bucket))
         files = self.s3.list_bucket(self.bucket)
+        log.info("Successfully retrieve bucket listing")
         files = self._exclude_files_by_regex(files)
+        log.info("Starting files downloading")
         self.s3.dump_files(files, self.dest, workers=self.workers)
 
     def start(self):
@@ -80,7 +83,10 @@ class S3BackupDiff(S3BackupFull):
         return filtered_files
 
     def _create_backup(self):
+        log.info('Starting backup bucket "{0}"'.format(self.bucket))
         files = self.s3.list_bucket(self.bucket)
+        log.info("Successfully retrieve bucket listing")
         files = self._exclude_files_by_time(files)
         files = self._exclude_files_by_regex(files)
+        log.info("Starting files downloading")
         self.s3.dump_files(files, self.dest, workers=self.workers)
