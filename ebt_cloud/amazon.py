@@ -1,9 +1,17 @@
 import logging
 from boto.glacier.layer2 import Layer2
+from boto import connect_s3
+import boto.s3.connection
 import time
+import datetime
+import ebt_system
+import os
+import multiprocess as mp
+from functools import partial
+from contextlib import contextmanager
 
 
-class Amazon:
+class AmazonGlacier:
     def __init__(self, aws_access_key_id, aws_secret_access_key, region_name):
         self.log = logging.getLogger('__main__')
         logging.getLogger('boto').setLevel(logging.CRITICAL)
@@ -53,4 +61,51 @@ class Amazon:
     def delete_archive(self, vault_name, archive_id):
         vault = self.glacier_client.get_vault(vault_name)
         vault.delete_archive(archive_id)
-        self.log.debug('Successfuly remove archive "{0}" from vault "{1}"'.format(archive_id, vault.name))
+        self.log.debug('Successfully remove archive "{0}" from vault "{1}"'.format(archive_id, vault.name))
+
+
+class S3(object):
+    def __init__(self, aws_access_key_id, aws_secret_access_key, **kwargs):
+        self.s3_client = connect_s3(aws_access_key_id = aws_access_key_id,
+                                    aws_secret_access_key=aws_secret_access_key,
+                                    calling_format=boto.s3.connection.OrdinaryCallingFormat(), **kwargs)
+        logging.getLogger('boto').setLevel(logging.CRITICAL)
+
+    @staticmethod
+    def _is_dir(path):
+        if path == "{0}/".format(os.path.dirname(path)):
+            return True
+        else:
+            return False
+
+    def _get_bucket_by_name(self, bucket_name):
+        for bucket in self.s3_client.get_all_buckets():
+            if str(bucket.name) == bucket_name:
+                return bucket
+
+    def list_bucket(self, bucket_name):
+        bucket = self._get_bucket_by_name(bucket_name)
+        files = []
+        for item in bucket.list():
+            item.last_modified_dt = datetime.datetime.strptime(item.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ')
+            if self._is_dir(item.name) is False:
+                files.append(item)
+        return files
+
+    @staticmethod
+    @contextmanager
+    def poolcontext(*args, **kwargs):
+        pool = mp.Pool(*args, **kwargs)
+        yield pool
+        pool.terminate()
+
+    @staticmethod
+    def _dump_file(file, dest_dir):
+        dest = os.path.join(dest_dir, file.name)
+        ebt_system.makedirs(os.path.dirname(dest), exist_ok=True)
+        file.get_contents_to_filename(dest)
+
+    def dump_files(self, files, dest_dir, workers=48):
+        with self.poolcontext(processes=workers) as pool:
+            pool.map(partial(self._dump_file, dest_dir=dest_dir), files)
+

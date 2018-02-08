@@ -12,7 +12,8 @@ This is backup framework for creating flexible backup scripts.
 6. Full/Diff backups of any binary files or block devices with diff-dd.
 7. Full/Diff backups of Libvirt VM's.
 8. Full/Diff backups of Libvirt VM's with external snapshots (works with qcow, qcow2, and raw file block devices).
-9. Predefined jobs for popular cases.
+9. Full/Diff backups of S3 buckets (beta, can work with Amazon S3, Ceph and other S3 storage)
+10. Predefined jobs for popular cases.
 
 ## Install
 1. Install following dependency with your OS package manager:  
@@ -25,7 +26,6 @@ rsync
 lvm2
 p7zip
 btrfs-progs
-libvirt-python
 pigz
 Percona-Server-client-57
 percona-xtrabackup-24

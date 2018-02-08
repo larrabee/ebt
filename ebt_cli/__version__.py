@@ -1,5 +1,5 @@
 __name__ = "ebt"
-__version__ = "2.0.46"
+__version__ = "2.0.50"
 __author__ = "larrabee"
 __email__ = "kafatron@gmail.com"
 __description__ = "Flexible backup framework"

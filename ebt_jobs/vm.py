@@ -174,9 +174,9 @@ class LibvirtBackupDiff(LibvirtBackup):
 class LibvirtBackupToGlacier(LibvirtBackup):
     def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, vault, archive_pass, *args, **kwargs):
         super(LibvirtBackupToGlacier, self).__init__(*args, **kwargs)
-        self.glacier = ebt_cloud.Amazon(aws_access_key_id=aws_access_key_id,
-                                        aws_secret_access_key=aws_secret_access_key,
-                                        region_name=region_name)
+        self.glacier = ebt_cloud.AmazonGlacier(aws_access_key_id=aws_access_key_id,
+                                               aws_secret_access_key=aws_secret_access_key,
+                                               region_name=region_name)
         self.archive_pass = archive_pass
         self.vault = vault
 

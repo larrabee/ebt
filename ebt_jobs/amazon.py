@@ -11,9 +11,9 @@ class CleanUpGlacier(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, vault, dayexp=365):
         self.dayexp = dayexp
         self.vault = vault
-        self.glacier = ebt_cloud.Amazon(aws_access_key_id=aws_access_key_id,
-                                        aws_secret_access_key=aws_secret_access_key,
-                                        region_name=region_name)
+        self.glacier = ebt_cloud.AmazonGlacier(aws_access_key_id=aws_access_key_id,
+                                               aws_secret_access_key=aws_secret_access_key,
+                                               region_name=region_name)
 
     def _check_archive_expiration(self, archive):
         archive_id = archive['ArchiveId']
@@ -44,9 +44,9 @@ class RetrieveArchive(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, region_name, vault, dest_dir):
         self.dest_dir = dest_dir
         self.vault = vault
-        self.glacier = ebt_cloud.Amazon(aws_access_key_id=aws_access_key_id,
-                                        aws_secret_access_key=aws_secret_access_key,
-                                        region_name=region_name)
+        self.glacier = ebt_cloud.AmazonGlacier(aws_access_key_id=aws_access_key_id,
+                                               aws_secret_access_key=aws_secret_access_key,
+                                               region_name=region_name)
 
     def get_file(self, archive_id, filename=None):
         if filename in None:

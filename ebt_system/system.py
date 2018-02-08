@@ -3,6 +3,7 @@ import sys
 import shutil
 import os
 import subprocess
+import errno
 
 log = logging.getLogger('__main__')
 
@@ -50,3 +51,16 @@ def rm(path):
             elif os.path.isfile(item):
                 os.remove(item)
                 log.info('Remove file: {0}'.format(item))
+
+
+def makedirs(path, exist_ok=False):
+    if exist_ok is True:
+        try:
+            os.makedirs(path)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
+    else:
+        os.makedirs(path)
