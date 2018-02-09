@@ -20,7 +20,7 @@ class S3BackupFull(object):
         self.exclude = exclude
         self.day_exp = day_exp
         self.store_last = store_last
-        self.workers = 24
+        self.workers = 64
 
 
     def _set_backup_dest(self):
@@ -53,7 +53,7 @@ class S3BackupFull(object):
         files = self.s3.list_bucket(self.bucket)
         log.info("Successfully retrieve bucket listing")
         files = self._exclude_files_by_regex(files)
-        log.info("Starting files downloading")
+        log.info("Starting files downloading ({0} files)".format(len(files)))
         self.s3.dump_files(files, self.dest, workers=self.workers)
 
     def start(self):
@@ -88,5 +88,5 @@ class S3BackupDiff(S3BackupFull):
         log.info("Successfully retrieve bucket listing")
         files = self._exclude_files_by_time(files)
         files = self._exclude_files_by_regex(files)
-        log.info("Starting files downloading")
+        log.info("Starting files downloading ({0} files)".format(len(files)))
         self.s3.dump_files(files, self.dest, workers=self.workers)
