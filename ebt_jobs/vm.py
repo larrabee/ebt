@@ -44,7 +44,7 @@ class LibvirtBackup(object):
         log.info('Start backup domain {0}'.format(domain.name()))
         os.makedirs('{0}/{1}'.format(self.dest, domain.name()))
         log.info('Export domain XML to {0}/{1}/{1}.xml'.format(self.dest, domain.name()))
-        self.libvirt_client.export_xml(domain=domain, path='{0}/{1}/{1}.xml'.format(self.dest, domain.name()))
+        self.libvirt_client.export_xml(domain=domain, path='{0}/{1}/{1}.xml'.format(self.dest, domain.name()))  
         if (self.dump_memory is True) and (domain.isActive() == 1):
             log.debug('Save memory image to {0}/{1}/memory.save'.format(self.dest, domain.name()))
             domain.save(to='{0}/{1}/memory.save'.format(self.dest, domain.name()))

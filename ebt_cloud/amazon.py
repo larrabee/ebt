@@ -79,9 +79,7 @@ class S3(object):
             return False
 
     def _get_bucket_by_name(self, bucket_name):
-        for bucket in self.s3_client.get_all_buckets():
-            if str(bucket.name) == bucket_name:
-                return bucket
+        return self.s3_client.get_bucket(bucket_name)
 
     def list_bucket(self, bucket_name):
         bucket = self._get_bucket_by_name(bucket_name)
