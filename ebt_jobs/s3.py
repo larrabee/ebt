@@ -40,13 +40,12 @@ class S3BackupFull(object):
     def _exclude_files_by_regex(self, files):
         if len(self.exclude) == 0:
             return files
-        filtered_files = copy.deepcopy(files)
         for file in files:
             for regex in self.exclude:
                 if re.match(regex, file.name) is not None:
-                    if file in filtered_files:
-                        filtered_files.remove(file)
-        return filtered_files
+                    if file in files:
+                        files.remove(file)
+        return files
 
     def _create_backup(self):
         log.info('Starting backup bucket "{0}"'.format(self.bucket))
