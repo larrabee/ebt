@@ -21,6 +21,7 @@ class S3BackupFull(object):
         self.day_exp = day_exp
         self.store_last = store_last
         self.workers = 64
+        self.queue_length = 65536
 
 
     def _set_backup_dest(self):
@@ -37,23 +38,31 @@ class S3BackupFull(object):
     def _post_backup(self):
         pass
 
-    def _exclude_files_by_regex(self, files):
+    def _exclude_file_by_regex(self, file):
         if len(self.exclude) == 0:
-            return files
-        for file in files:
-            for regex in self.exclude:
-                if re.match(regex, file.name) is not None:
-                    if file in files:
-                        files.remove(file)
-        return files
+            return False
+        for regex in self.exclude:
+            if re.match(regex, file.name) is not None:
+                return True
+        return False
 
     def _create_backup(self):
         log.info('Starting backup bucket "{0}"'.format(self.bucket))
-        files = self.s3.list_bucket(self.bucket)
-        log.info("Successfully retrieve bucket listing")
-        files = self._exclude_files_by_regex(files)
-        log.info("Starting files downloading ({0} files)".format(len(files)))
+        files = []
+        files_count = 0
+        for file in self.s3.list_bucket(self.bucket):
+            if self._exclude_file_by_regex(file) is True:
+                continue
+            if len(files) < self.queue_length:
+                files.append(file)
+                files_count += 1
+            else:
+                files.append(file)
+                files_count += 1
+                self.s3.dump_files(files, self.dest, workers=self.workers)
+                files = []
         self.s3.dump_files(files, self.dest, workers=self.workers)
+        log.info('Backup of bucket "{0}" successfully completed. Backuped {1} files.'.format(self.bucket, files_count))
 
     def start(self):
         self._set_backup_dest()
@@ -74,18 +83,27 @@ class S3BackupDiff(S3BackupFull):
         old_backups = ebt_cleaner.filter_list(path=self.dest_dir, dayexp=self.day_exp, store_last=self.store_last, fmt='%date%%%fdate')
         ebt_system.rm(old_backups)
 
-    def _exclude_files_by_time(self, files):
-        filtered_files = []
-        for file in files:
-            if file.last_modified_dt > self.full_backup_date:
-                        filtered_files.append(file)
-        return filtered_files
+    def _exclude_files_by_time(self, file):
+        if file.last_modified_dt > self.full_backup_date:
+                    return False
+        return True
 
     def _create_backup(self):
         log.info('Starting backup bucket "{0}"'.format(self.bucket))
-        files = self.s3.list_bucket(self.bucket)
-        log.info("Successfully retrieve bucket listing")
-        files = self._exclude_files_by_time(files)
-        files = self._exclude_files_by_regex(files)
-        log.info("Starting files downloading ({0} files)".format(len(files)))
+        files = []
+        files_count = 0
+        for file in self.s3.list_bucket(self.bucket):
+            if self._exclude_file_by_regex(file) is True:
+                continue
+            elif self._exclude_files_by_time(file) is True:
+                continue
+            if len(files) < self.queue_length:
+                files.append(file)
+                files_count += 1
+            else:
+                files.append(file)
+                files_count += 1
+                self.s3.dump_files(files, self.dest, workers=self.workers)
+                files = []
         self.s3.dump_files(files, self.dest, workers=self.workers)
+        log.info('Backup of bucket "{0}" successfully completed. Backuped {1} files.'.format(self.bucket, files_count))

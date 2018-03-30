@@ -66,7 +66,7 @@ class AmazonGlacier:
 
 class S3(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, **kwargs):
-        self.s3_client = connect_s3(aws_access_key_id = aws_access_key_id,
+        self.s3_client = connect_s3(aws_access_key_id=aws_access_key_id,
                                     aws_secret_access_key=aws_secret_access_key,
                                     calling_format=boto.s3.connection.OrdinaryCallingFormat(), **kwargs)
         logging.getLogger('boto').setLevel(logging.CRITICAL)
@@ -83,12 +83,16 @@ class S3(object):
 
     def list_bucket(self, bucket_name):
         bucket = self._get_bucket_by_name(bucket_name)
-        files = []
-        for item in bucket.list():
-            item.last_modified_dt = datetime.datetime.strptime(item.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') - (datetime.datetime.utcnow() - datetime.datetime.now())
-            if self._is_dir(item.name) is False:
-                files.append(item)
-        return files
+        more_results = True
+        k = None
+        while more_results:
+            rs = bucket.get_all_keys()
+            for k in rs:
+                k.last_modified_dt = datetime.datetime.strptime(k.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') - (datetime.datetime.utcnow() - datetime.datetime.now())
+                yield k
+            if k:
+                marker = rs.next_marker or k.name
+            more_results = rs.is_truncated
 
     @staticmethod
     @contextmanager
@@ -106,4 +110,3 @@ class S3(object):
     def dump_files(self, files, dest_dir, workers=48):
         with self.poolcontext(processes=workers) as pool:
             pool.map(partial(self._dump_file, dest_dir=dest_dir), files)
-
