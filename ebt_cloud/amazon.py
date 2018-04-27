@@ -81,12 +81,13 @@ class S3(object):
     def _get_bucket_by_name(self, bucket_name):
         return self.s3_client.get_bucket(bucket_name)
 
-    def list_bucket(self, bucket_name):
+    def list_bucket(self, bucket_name, max_keys):
         bucket = self._get_bucket_by_name(bucket_name)
         more_results = True
         k = None
+        marker = ''
         while more_results:
-            rs = bucket.get_all_keys()
+            rs = bucket.get_all_keys(marker=marker, max_keys=max_keys)
             for k in rs:
                 k.last_modified_dt = datetime.datetime.strptime(k.last_modified, '%Y-%m-%dT%H:%M:%S.%fZ') - (datetime.datetime.utcnow() - datetime.datetime.now())
                 yield k
