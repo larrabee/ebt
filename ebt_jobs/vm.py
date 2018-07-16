@@ -184,7 +184,7 @@ class LibvirtBackupToGlacier(LibvirtBackup):
         log.info('Compressing "{0}/{1}" to "{0}/{1}.7z"'.format(self.dest, domain.name()))
         ebt_files.archive.create7z(source="{0}/{1}".format(self.dest, domain.name()),
                                    dest="{0}/{1}.7z".format(self.dest, domain.name()), password=self.archive_pass,
-                                   options="-sdel", level=1)
+                                   options="-sdel -mmt2", level=1)
         log.info('Upload file "{0}/{1}.7z" to vault "{2}"'.format(self.dest, domain.name(), self.vault))
         archive_id = self.glacier.upload_file(vault_name=self.vault, description=domain.name(),
                                               path="{0}/{1}.7z".format(self.dest, domain.name()))

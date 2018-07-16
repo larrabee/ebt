@@ -93,7 +93,7 @@ class S3BackupDiff(S3BackupFull):
         return True
 
 
-class S3BackupFullS3sync(S3BackupFull):
+class S3BackupFullS3sync(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, bucket, dest_dir, day_exp, store_last, endpoint, prefix=""):
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
@@ -105,10 +105,26 @@ class S3BackupFullS3sync(S3BackupFull):
         self.prefix = prefix
         self.workers = 256
         self.retry = 5
+        self.disable_http2 = False
+        self.debug = False
+
+    def _set_backup_dest(self):
+        backup_date = ebt_cleaner.get_dir_name()
+        self.dest = "{0}/{1}".format(self.dest_dir, backup_date)
+
+    def _cleanup_old_backups(self):
+        old_backups = ebt_cleaner.filter_list(path=self.dest_dir, dayexp=self.day_exp, store_last=self.store_last)
+        ebt_system.rm(old_backups)
+
+    def _pre_backup(self):
+        pass
+
+    def _post_backup(self):
+        pass
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk "{aws_access_key_id}" --ss "{aws_secret_access_key}" --se "{endpoint} -w {workers} -r {retry} "s3://{bucket}{prefix}" "{dest}"'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} s3://{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
@@ -118,6 +134,11 @@ class S3BackupFullS3sync(S3BackupFull):
             prefix=self.prefix,
             dest=self.dest,
         )
+        if self.disable_http2:
+            command = "{{cmd}} --disable-http2".format(cmd=command)
+        if self.debug:
+            command = "{{cmd}} --debug".format(cmd=command)
+            
         exitcode, output = ebt_system.popen(command)
         log.info(output)
         log.info('Backup of bucket "{0}" successfully completed.'.format(self.bucket))
@@ -148,7 +169,7 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk "{aws_access_key_id}" --ss "{aws_secret_access_key}" --se "{endpoint} -w {workers} -r {retry} --ft {timestamp} "s3://{bucket}{prefix}" "{dest}"'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} --ft {timestamp} s3://{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
@@ -159,6 +180,11 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
             dest=self.dest,
             timestamp=self.full_backup_date.strftime("%s")
         )
+        if self.disable_http2:
+            command = "{{cmd}} --disable-http2".format(cmd=command)
+        if self.debug:
+            command = "{{cmd}} --debug".format(cmd=command)
+        
         exitcode, output = ebt_system.popen(command)
         log.info(output)
         log.info('Backup of bucket "{0}" successfully completed.'.format(self.bucket))
