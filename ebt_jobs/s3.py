@@ -135,9 +135,9 @@ class S3BackupFullS3sync(object):
             dest=self.dest,
         )
         if self.disable_http2:
-            command = "{{cmd}} --disable-http2".format(cmd=command)
+            command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
-            command = "{{cmd}} --debug".format(cmd=command)
+            command = "{cmd} --debug".format(cmd=command)
             
         exitcode, output = ebt_system.popen(command)
         log.info(output)
@@ -181,9 +181,9 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
             timestamp=self.full_backup_date.strftime("%s")
         )
         if self.disable_http2:
-            command = "{{cmd}} --disable-http2".format(cmd=command)
+            command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
-            command = "{{cmd}} --debug".format(cmd=command)
+            command = "{cmd} --debug".format(cmd=command)
         
         exitcode, output = ebt_system.popen(command)
         log.info(output)
