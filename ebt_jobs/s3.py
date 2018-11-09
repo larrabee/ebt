@@ -124,7 +124,7 @@ class S3BackupFullS3sync(object):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} s3://{bucket}{prefix} {dest}'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} s3st://{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
@@ -169,7 +169,7 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} --ft {timestamp} s3://{bucket}{prefix} {dest}'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} --ft {timestamp} s3st://{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
