@@ -94,7 +94,7 @@ class S3BackupDiff(S3BackupFull):
 
 
 class S3BackupFullS3sync(object):
-    def __init__(self, aws_access_key_id, aws_secret_access_key, bucket, dest_dir, day_exp, store_last, endpoint, prefix=""):
+    def __init__(self, aws_access_key_id, aws_secret_access_key, bucket, dest_dir, day_exp, store_last, endpoint, prefix="", proto="s3st://", onfail="fatal"):
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.dest_dir = dest_dir
@@ -107,6 +107,8 @@ class S3BackupFullS3sync(object):
         self.retry = 5
         self.disable_http2 = False
         self.debug = False
+        self.proto = proto
+        self.onfail = onfail
 
     def _set_backup_dest(self):
         backup_date = ebt_cleaner.get_dir_name()
@@ -124,15 +126,17 @@ class S3BackupFullS3sync(object):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} s3st://{bucket}{prefix} {dest}'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -f {onfail} -r {retry} {proto}{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
             workers=self.workers,
+            onfail=self.onfail,
             retry=self.retry,
             bucket=self.bucket,
             prefix=self.prefix,
             dest=self.dest,
+            proto=self.proto,
         )
         if self.disable_http2:
             command = "{cmd} --disable-http2".format(cmd=command)
@@ -169,16 +173,18 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} --ft {timestamp} s3st://{bucket}{prefix} {dest}'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -r {retry} --ft {timestamp} {proto}{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
             workers=self.workers,
+            onfail=self.onfail,
             retry=self.retry,
             bucket=self.bucket,
             prefix=self.prefix,
             dest=self.dest,
-            timestamp=self.full_backup_date.strftime("%s")
+            proto=self.proto,
+            timestamp=self.full_backup_date.strftime("%s"),
         )
         if self.disable_http2:
             command = "{cmd} --disable-http2".format(cmd=command)
