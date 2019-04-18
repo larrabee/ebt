@@ -103,12 +103,16 @@ class S3BackupFullS3sync(object):
         self.day_exp = day_exp
         self.store_last = store_last
         self.prefix = prefix
+        self.proto = proto
+        self.onfail = onfail
         self.workers = 256
         self.retry = 5
         self.disable_http2 = False
         self.debug = False
-        self.proto = proto
-        self.onfail = onfail
+        self.filter_extensions = []
+        self.filter_contenttype = []
+        self.filter_revert_extensions = []
+        self.filter_revert_contenttype = []
 
     def _set_backup_dest(self):
         backup_date = ebt_cleaner.get_dir_name()
@@ -142,6 +146,14 @@ class S3BackupFullS3sync(object):
             command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
             command = "{cmd} --debug".format(cmd=command)
+        for item in self.filter_contenttype:
+            command = "{cmd} --fct {fct}".format(cmd=command, fct=item)
+        for item in self.filter_extensions:
+            command = "{cmd} --fe {fe}".format(cmd=command, fe=item)
+        for item in self.filter_revert_contenttype:
+            command = "{cmd} --frct {frct}".format(cmd=command, frct=item)
+        for item in self.filter_revert_extensions:
+            command = "{cmd} --fre {fre}".format(cmd=command, fre=item)
             
         exitcode, output = ebt_system.popen(command)
         log.info(output)
@@ -190,6 +202,15 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
             command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
             command = "{cmd} --debug".format(cmd=command)
+        for item in self.filter_contenttype:
+            command = "{cmd} --fct {fct}".format(cmd=command, fct=item)
+        for item in self.filter_extensions:
+            command = "{cmd} --fe {fe}".format(cmd=command, fe=item)
+        for item in self.filter_revert_contenttype:
+            command = "{cmd} --frct {frct}".format(cmd=command, frct=item)
+        for item in self.filter_revert_extensions:
+            command = "{cmd} --fre {fre}".format(cmd=command, fre=item)
+        
         
         exitcode, output = ebt_system.popen(command)
         log.info(output)
