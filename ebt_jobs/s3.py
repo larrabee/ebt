@@ -94,7 +94,7 @@ class S3BackupDiff(S3BackupFull):
 
 
 class S3BackupFullS3sync(object):
-    def __init__(self, aws_access_key_id, aws_secret_access_key, bucket, dest_dir, day_exp, store_last, endpoint, prefix="", proto="s3st://", onfail="fatal"):
+    def __init__(self, aws_access_key_id, aws_secret_access_key, bucket, dest_dir, day_exp, store_last, endpoint, prefix="", onfail="fatal"):
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.dest_dir = dest_dir
@@ -103,10 +103,10 @@ class S3BackupFullS3sync(object):
         self.day_exp = day_exp
         self.store_last = store_last
         self.prefix = prefix
-        self.proto = proto
         self.onfail = onfail
-        self.workers = 256
+        self.workers = 128
         self.retry = 5
+        self.retry_interval = 1
         self.disable_http2 = False
         self.debug = False
         self.filter_extensions = []
@@ -130,7 +130,7 @@ class S3BackupFullS3sync(object):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -f {onfail} -r {retry} {proto}{bucket}{prefix} {dest}'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -f {onfail} --s3-retry {retry} --s3-retry-sleep {retry_interval} s3://{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
@@ -140,20 +140,20 @@ class S3BackupFullS3sync(object):
             bucket=self.bucket,
             prefix=self.prefix,
             dest=self.dest,
-            proto=self.proto,
+            retry_interval=self.retry_interval
         )
         if self.disable_http2:
             command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
             command = "{cmd} --debug".format(cmd=command)
-        for item in self.filter_contenttype:
-            command = "{cmd} --fct {fct}".format(cmd=command, fct=item)
         for item in self.filter_extensions:
-            command = "{cmd} --fe {fe}".format(cmd=command, fe=item)
-        for item in self.filter_revert_contenttype:
-            command = "{cmd} --frct {frct}".format(cmd=command, frct=item)
+            command = "{cmd} --filter-ext {fe}".format(cmd=command, fe=item)
         for item in self.filter_revert_extensions:
-            command = "{cmd} --fre {fre}".format(cmd=command, fre=item)
+            command = "{cmd} --filter-not-ext {fre}".format(cmd=command, fre=item)
+        for item in self.filter_contenttype:
+            command = "{cmd} --filter-ct {fct}".format(cmd=command, fct=item)
+        for item in self.filter_revert_contenttype:
+            command = "{cmd} --filter-not-ct {frct}".format(cmd=command, frct=item)
             
         exitcode, output = ebt_system.popen(command)
         log.info(output)
@@ -185,7 +185,7 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
 
     def _create_backup(self):
         log.info('Starting backup of bucket "{0}" with s3sync'.format(self.bucket))
-        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -f {onfail} -r {retry} --ft {timestamp} {proto}{bucket}{prefix} {dest}'.format(
+        command = 's3sync --sk {aws_access_key_id} --ss {aws_secret_access_key} --se {endpoint} -w {workers} -f {onfail} --s3-retry {retry} --s3-retry-sleep {retry_interval} --filter-after-mtime {timestamp} s3://{bucket}{prefix} {dest}'.format(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             endpoint=self.endpoint,
@@ -195,21 +195,22 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
             bucket=self.bucket,
             prefix=self.prefix,
             dest=self.dest,
-            proto=self.proto,
-            timestamp=self.full_backup_date.strftime("%s"),
+            retry_interval=self.retry_interval
+            timestamp=self.full_backup_date.strftime("%s")
         )
+
         if self.disable_http2:
             command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
             command = "{cmd} --debug".format(cmd=command)
-        for item in self.filter_contenttype:
-            command = "{cmd} --fct {fct}".format(cmd=command, fct=item)
         for item in self.filter_extensions:
-            command = "{cmd} --fe {fe}".format(cmd=command, fe=item)
-        for item in self.filter_revert_contenttype:
-            command = "{cmd} --frct {frct}".format(cmd=command, frct=item)
+            command = "{cmd} --filter-ext {fe}".format(cmd=command, fe=item)
         for item in self.filter_revert_extensions:
-            command = "{cmd} --fre {fre}".format(cmd=command, fre=item)
+            command = "{cmd} --filter-not-ext {fre}".format(cmd=command, fre=item)
+        for item in self.filter_contenttype:
+            command = "{cmd} --filter-ct {fct}".format(cmd=command, fct=item)
+        for item in self.filter_revert_contenttype:
+            command = "{cmd} --filter-not-ct {frct}".format(cmd=command, frct=item)
         
         
         exitcode, output = ebt_system.popen(command)
