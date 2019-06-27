@@ -195,7 +195,7 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
             bucket=self.bucket,
             prefix=self.prefix,
             dest=self.dest,
-            retry_interval=self.retry_interval
+            retry_interval=self.retry_interval,
             timestamp=self.full_backup_date.strftime("%s")
         )
 
