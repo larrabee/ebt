@@ -105,6 +105,8 @@ class S3BackupFullS3sync(object):
         self.prefix = prefix
         self.onfail = onfail
         self.workers = 128
+        self.ratelimit_objects = 0
+        self.ratelimit_bandwidth = None
         self.retry = 5
         self.retry_interval = 1
         self.disable_http2 = False
@@ -146,6 +148,10 @@ class S3BackupFullS3sync(object):
             command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
             command = "{cmd} --debug".format(cmd=command)
+        if self.ratelimit_objects > 0:
+            command = "{cmd} --ratelimit-objects {limit}".format(cmd=command, limit=self.ratelimit_objects)
+        if self.ratelimit_bandwidth is not None:
+            command = "{cmd} --ratelimit-bandwidth {limit}".format(cmd=command, limit=self.ratelimit_bandwidth)
         for item in self.filter_extensions:
             command = "{cmd} --filter-ext {fe}".format(cmd=command, fe=item)
         for item in self.filter_revert_extensions:
@@ -203,6 +209,10 @@ class S3BackupDiffS3sync(S3BackupFullS3sync):
             command = "{cmd} --disable-http2".format(cmd=command)
         if self.debug:
             command = "{cmd} --debug".format(cmd=command)
+        if self.ratelimit_objects > 0:
+            command = "{cmd} --ratelimit-objects {limit}".format(cmd=command, limit=self.ratelimit_objects)
+        if self.ratelimit_bandwidth is not None:
+            command = "{cmd} --ratelimit-bandwidth {limit}".format(cmd=command, limit=self.ratelimit_bandwidth)
         for item in self.filter_extensions:
             command = "{cmd} --filter-ext {fe}".format(cmd=command, fe=item)
         for item in self.filter_revert_extensions:
