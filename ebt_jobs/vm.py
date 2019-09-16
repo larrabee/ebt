@@ -25,6 +25,7 @@ class LibvirtBackup(object):
         self.compress_level = 5
         self.lvm_snap_size = '10G'
         self.compress_threads = cpu_count()
+        self.passwd=None
 
     def _set_backup_dest(self):
         self.backup_date = ebt_cleaner.get_dir_name()
@@ -65,7 +66,7 @@ class LibvirtBackup(object):
                 ebt_files.dd.create(source=disk['path'], dest='{0}/{1}/{2}.img.gz'.format(self.dest, domain.name(),
                                                                                           os.path.basename(
                                                                                               disk['path'])),
-                                    compress_level=self.compress_level, compress_threads=self.compress_threads)
+                                    compress_level=self.compress_level, compress_threads=self.compress_threads, passwd=self.passwd)
         if (self.dump_memory is True) and (domain.isActive() == 0) and (
                     os.path.isfile("{0}/{1}/memory.save".format(self.dest, domain.name())) is True):
             log.info('Restore memory from file {0}/{1}/memory.save'.format(self.dest, domain.name()))
@@ -81,7 +82,7 @@ class LibvirtBackup(object):
                 ebt_files.dd.create(source='{0}-snap'.format(disk['path']),
                                     dest='{0}/{1}/{2}.img.gz'.format(self.dest, domain.name(),
                                                                      os.path.basename(disk['path'])),
-                                    compress_level=self.compress_level, compress_threads=self.compress_threads)
+                                    compress_level=self.compress_level, compress_threads=self.compress_threads, passwd=self.passwd)
                 open('{0}/{1}/{2}.img.size'.format(self.dest, domain.name(), os.path.basename(disk['path'])),
                      mode='w').write(
                     str(self.libvirt_client.device_size(domain, disk['target'])))
@@ -245,7 +246,7 @@ class LibvirtBackupExternalSnapshot(LibvirtBackup):
                 ebt_files.dd.create(source=disk['path'], dest='{0}/{1}/{2}.img.gz'.format(self.dest, domain.name(),
                                                                                           os.path.basename(
                                                                                               disk['path'])),
-                                    compress_level=self.compress_level, compress_threads=self.compress_threads)
+                                    compress_level=self.compress_level, compress_threads=self.compress_threads, passwd=self.passwd)
                 open('{0}/{1}/{2}.img.size'.format(self.dest, domain.name(), os.path.basename(disk['path'])),
                      mode='w').write(
                     str(self.libvirt_client.device_size(domain, disk['target'])))
