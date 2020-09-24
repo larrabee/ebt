@@ -49,7 +49,7 @@ class RetrieveArchive(object):
                                                region_name=region_name)
 
     def get_file(self, archive_id, filename=None):
-        if filename in None:
+        if filename is None:
             dest = os.path.join(self.dest_dir, archive_id)
         else:
             dest = os.path.join(self.dest_dir, filename)
